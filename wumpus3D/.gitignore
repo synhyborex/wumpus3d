@@ -1,0 +1,4 @@
+# the files that git will ignore
+
+#ignore all binaries
+bin/
