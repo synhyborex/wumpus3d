@@ -41,11 +41,11 @@ public class Grid {
 	}
 	
 	/**
-	 * Returns the current instance of this class.
-	 * @return <code>this</code>
+	 * Returns the number of goals on the current map
+	 * @return the number of goals on the current map
 	 */
-	public Grid currentInstance(){
-		return this;
+	public int numGoals(){
+		return numGoals;
 	}
 	
 	/**
