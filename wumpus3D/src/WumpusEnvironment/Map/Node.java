@@ -10,9 +10,9 @@ public class Node {
 	protected int y;
 	protected boolean hasGoal;
 	protected boolean hasWall;
+	protected boolean hasWumpus;
 	protected boolean hasPit;
 	protected boolean hasMinion;
-	protected boolean hasWumpus;
 	
 	/**
 	 * Creates a new empty Node
@@ -28,4 +28,12 @@ public class Node {
 		hasMinion = false;
 		hasWumpus = false;
 	}
+	
+	/* getter methods */
+	public boolean hasGoal(){return hasGoal;}
+	public boolean hasWall(){return hasWall;}
+	public boolean hasWumpus(){return hasWumpus;}
+	public boolean hasPit(){return hasPit;}
+	public boolean hasMinion(){return hasMinion;}
+	
 }
