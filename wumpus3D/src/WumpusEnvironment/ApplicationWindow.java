@@ -9,7 +9,18 @@ import javax.swing.*;
 import com.jogamp.opengl.util.*;
 import static javax.media.opengl.GL.*;  // GL constants
 import static javax.media.opengl.GL2.*; // GL2 constants
-import static javax.media.opengl.GL3.*; // GL3 constants
+import static javax.media.opengl.GL2ES2.*; // GL2 constants
+import static javax.media.opengl.GL2.*; // GL2 constants
+import java.io.File; 
+import java.io.IOException; 
+import java.nio.FloatBuffer; 
+import java.nio.IntBuffer;
+import javax.media.opengl.GLAutoDrawable; 
+import javax.media.opengl.GLEventListener; 
+import javax.media.opengl.GLException; 
+import com.jogamp.common.nio.Buffers; 
+import com.jogamp.opengl.util.texture.Texture;
+import com.jogamp.opengl.util.texture.TextureIO; 
 
 public class ApplicationWindow implements GLEventListener{
 	
@@ -17,8 +28,11 @@ public class ApplicationWindow implements GLEventListener{
 	private double s = 0;
 	private double c = 0;
 	protected GLU glu;  // for the GL Utility
+	//GLuint h;
+	//GLenum j;
 	
 	protected static Grid grid;
+	//protected final GLresources gr;
 	
 	public static void main(String[] args){
 		grid = new Grid(10,10);
@@ -33,7 +47,7 @@ public class ApplicationWindow implements GLEventListener{
 		frame.setMinimumSize(new java.awt.Dimension(500, 500));
 		
 		// The OpenGL profile. Handles the version of OpenGL to use
-		GLProfile glp = GLProfile.get(GLProfile.GL3);
+		GLProfile glp = GLProfile.get(GLProfile.GL2);
 		GLProfile.initSingleton();
 		GLCapabilities caps = new GLCapabilities(glp);
 		GLCanvas canvas = new GLCanvas(caps);
@@ -68,20 +82,20 @@ public class ApplicationWindow implements GLEventListener{
 	public void init(GLAutoDrawable arg) {
 		// OpenGL initialization code
 		arg.getGL().setSwapInterval(1); //set v-sync
-		/*GL3 gl = arg.getGL().getGL3();      // get the OpenGL graphics context
+		GL2 gl = arg.getGL().getGL2();      // get the OpenGL graphics context
 		glu = new GLU();                         // get GL Utilities
 		gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // set background (clear) color
 		gl.glClearDepth(1.0f);      // set clear depth value to farthest
 		gl.glEnable(GL_DEPTH_TEST); // enables depth testing
 		gl.glDepthFunc(GL_LEQUAL);  // the type of depth test to do
 		gl.glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // best perspective correction
-		gl.glShadeModel(GL_SMOOTH); // blends colors nicely, and smoothes out lighting*/
+		gl.glShadeModel(GL_SMOOTH); // blends colors nicely, and smoothes out lighting
 	}
 
 	@Override
 	public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
 		// what to do when window is resized
-		/*GL3 gl = drawable.getGL().getGL3();  // get the OpenGL 2 graphics context
+		GL2 gl = drawable.getGL().getGL2();  // get the OpenGL 2 graphics context
 		 
 	      if (height == 0) height = 1;   // prevent divide by zero
 	      float aspect = (float)width / height;
@@ -92,11 +106,11 @@ public class ApplicationWindow implements GLEventListener{
 	      // Setup perspective projection, with aspect ratio matches viewport
 	      gl.glMatrixMode(GL_PROJECTION);  // choose projection matrix
 	      gl.glLoadIdentity();             // reset projection matrix
-	      //glu.gluPerspective(45.0, aspect, 0.1, 100.0); // fovy, aspect, zNear, zFar
+	      glu.gluPerspective(45.0, aspect, 0.1, 100.0); // fovy, aspect, zNear, zFar
 	 
 	      // Enable the model-view transform
 	      gl.glMatrixMode(GL_MODELVIEW);
-	      gl.glLoadIdentity(); // reset*/
+	      gl.glLoadIdentity(); // reset
 		
 	}
 	
@@ -108,7 +122,6 @@ public class ApplicationWindow implements GLEventListener{
 	}
 	
 	protected void renderMovingTri(GLAutoDrawable drawable) {
-	    GL3 gl3 = drawable.getGL().getGL3();
 	    GL2 gl = drawable.getGL().getGL2();
 	    
 	    //clear background color
