@@ -21,12 +21,21 @@ import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException; 
 import com.jogamp.common.nio.Buffers; 
 import com.jogamp.opengl.util.texture.Texture;
-import com.jogamp.opengl.util.texture.TextureIO; 
+import com.jogamp.opengl.util.texture.TextureIO;
+import com.hackoeur.jglm.*;
+import com.hackoeur.jglm.buffer.*;
+import com.hackoeur.jglm.support.*;
 
-public class ApplicationWindow implements GLEventListener{
+public class ApplicationWindow{// implements GLEventListener{
 	
 	protected GLU glu;  // for the GL Utility
 	int program; //shader program
+	static int g_width = 500;
+	static int g_height = 500;
+	
+	//handles
+	int h_aPosition;
+	int h_aColor;
 	
 	private IntBuffer buffers = IntBuffer.allocate(2);
 	IntBuffer vertexArray = IntBuffer.allocate(1);
@@ -80,53 +89,64 @@ public class ApplicationWindow implements GLEventListener{
 		
 		//set frame details
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setMinimumSize(new java.awt.Dimension(500, 500));
+		frame.setMinimumSize(new java.awt.Dimension(g_width, g_height));
 		
 		// The OpenGL profile. Handles the version of OpenGL to use
-		GLProfile glp = GLProfile.get(GLProfile.GL3);
+		/*GLProfile glp = GLProfile.get(GLProfile.GL3);
 		GLProfile.initSingleton();
 		GLCapabilities caps = new GLCapabilities(glp);
 		GLCanvas canvas = new GLCanvas(caps);
 		
 		// The Animator we need for the render loop
-		Animator animator = new Animator(canvas);
-		animator.start();
+		//Animator animator = new Animator(canvas);
+		//animator.start();
 		
 		//create components and put them in the frame
 		frame.getContentPane().add(canvas);
-		canvas.addGLEventListener(new ApplicationWindow());
+		canvas.addGLEventListener(new ApplicationWindow());*/
 		
 		//size and display the frame
 		frame.pack();
 		frame.setVisible(true);
 	}
 
-	@Override
+	//@Override
 	public void display(GLAutoDrawable drawable) {
 		//put drawing code here
 		//updateMovingTri();
 	    //renderMovingTri(arg);
 		GL3 gl = drawable.getGL().getGL3();
+		drawable.setGL(new DebugGL3(drawable.getGL().getGL3()));
+		
 		gl.glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-	    //gl.glUseProgram(program);
-	    
-	    //gl.glBindVertexArray(vertexArray.get(0));
+		//gl.glUseProgram(program);
+		
+		gl.glEnableVertexAttribArray(h_aPosition);
+		gl.glBindBuffer(GL_ARRAY_BUFFER,buffers.get(0));
+		gl.glVertexAttribPointer(h_aPosition, 3, GL_FLOAT, false, 0, 0);
+		
+		gl.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,buffers.get(1));
+		gl.glDrawElements(GL_TRIANGLES, idxlen, GL_UNSIGNED_SHORT, 0);
+		
+		gl.glDisableVertexAttribArray(h_aPosition);
+   	    //gl.glBindVertexArray(vertexArray.get(0));
 	    //gl.glDrawArrays(GL.GL_TRIANGLES, 0, 6);
 	}
 
-	@Override
+	////@Override
 	public void dispose(GLAutoDrawable arg) {
 		// cleanup code
 		
 	}
 
-	@Override
+	//@Override
 	public void init(GLAutoDrawable drawable) {
 		// OpenGL initialization code
 		drawable.getGL().setSwapInterval(1); //set v-sync
 		GL3 gl = drawable.getGL().getGL3();      // get the OpenGL graphics context
-		glu = new GLU();                         // get GL Utilities
-		gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // set background (clear) color
+		drawable.setGL(new DebugGL3(drawable.getGL().getGL3()));
+		//glu = new GLU();                         // get GL Utilities
+		gl.glClearColor(0.0f, 1.0f, 1.0f, 1.0f); // set background (clear) color
 		gl.glClearDepth(1.0f);      // set clear depth value to farthest
 		gl.glEnable(GL_DEPTH_TEST); // enables depth testing
 		gl.glDepthFunc(GL_LEQUAL);  // the type of depth test to do
@@ -142,6 +162,13 @@ public class ApplicationWindow implements GLEventListener{
 		
 		gl.glBindBuffer(GL_ARRAY_BUFFER, buffers.get(1));
 	    gl.glBufferData(GL_ARRAY_BUFFER, 4 * 8 * 3, CubeIdxBuffObj, GL_STATIC_DRAW);
+	    
+	    //set up handles
+	    //h_aPosition = gl.glGetAttribLocation(program,"position");
+	    //h_aColor = gl.glGetAttribLocation(program, "color");
+	    
+	    //gl.glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	   // gl.glUseProgram(program);
 		
 		/*gl.glEnableClientState(GL2.GL_VERTEX_ARRAY);
 		gl.glGenBuffers(2, buffers);
@@ -169,10 +196,12 @@ public class ApplicationWindow implements GLEventListener{
 	    gl.glVertexAttribPointer(1, 3, GL.GL_FLOAT, false, 0, 0);*/
 	}
 
-	@Override
+	//@Override
 	public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+		g_width = width;
+		g_height = height;
 		// what to do when window is resized
-		GL3 gl = drawable.getGL().getGL3();  // get the OpenGL 2 graphics context
+		GL3 gl = drawable.getGL().getGL3();  // get the OpenGL 3 graphics context
 		//drawable.setGL(new DebugGL3(drawable.getGL().getGL3()));
 		 
 	      if (height == 0) height = 1;   // prevent divide by zero
@@ -195,6 +224,7 @@ public class ApplicationWindow implements GLEventListener{
 	
 	protected void installShader(GLAutoDrawable drawable){
 		GL3 gl = drawable.getGL().getGL3();
+		drawable.setGL(new DebugGL3(drawable.getGL().getGL3()));
 		// Create program.
 		program = gl.glCreateProgram();
 
@@ -202,12 +232,12 @@ public class ApplicationWindow implements GLEventListener{
 		int vertexShader = gl.glCreateShader(GL_VERTEX_SHADER);
 		String[] vertexShaderSource = new String[1];
 		vertexShaderSource[0] = "#version 330\n" +
-		    "layout(location=0) in vec2 position;\n" +
-		    "layout(location=1) in vec3 color;\n" +
-		    "out vec3 vColor;\n" +
+		    "layout(location=0) attribute vec3 position;\n" +
+		    "layout(location=1) attribute vec3 color;\n" +
+		    "varying vec3 vColor;\n" +
 		    "void main(void)\n" +
 		    "{\n" +
-		    "gl_Position = vec4(position, 0.0, 1.0);\n" +
+		    "gl_Position = vec4(position, 1.0);\n" +
 		    "vColor = vec4(color, 1.0);\n" +
 		    "}\n";
 		gl.glShaderSource(vertexShader, 1, vertexShaderSource, null);
@@ -217,11 +247,10 @@ public class ApplicationWindow implements GLEventListener{
 		int fragmentShader = gl.glCreateShader(GL_FRAGMENT_SHADER);
 		String[] fragmentShaderSource = new String[1];
 		fragmentShaderSource[0] = "#version 330\n" +
-		    "in vec4 vColor;\n" +
-		    "out vec4 fColor;\n" +
+		    "varying vec4 vColor;\n" +
 		    "void main(void)\n" +
 		    "{\n" +
-		    "fColor = vColor;\n" +
+		    "gl_FragColor = vColor;\n" +
 		    "}\n";
 		gl.glShaderSource(fragmentShader, 1, fragmentShaderSource, null);
 		gl.glCompileShader(fragmentShader);
@@ -230,6 +259,10 @@ public class ApplicationWindow implements GLEventListener{
 		gl.glAttachShader(program, vertexShader);
 		gl.glAttachShader(program, fragmentShader);
 		gl.glLinkProgram(program);
+	}
+	
+	void setProjMatrix(){
+		Mat4 proj = Matrices.perspective(80.f,(float)g_width/g_height,0.1f,100.f);
 	}
 	
 	protected void updateMovingTri() {
