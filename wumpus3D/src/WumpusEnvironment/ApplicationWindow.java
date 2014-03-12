@@ -1,6 +1,7 @@
 package WumpusEnvironment;
 import WumpusEnvironment.Map.*;
-import WumpusEnvironment.Agent.Agent;
+import WumpusEnvironment.Agent.*;
+import WumpusEnvironment.Agent.TestAgents.*;
 
 import javax.media.opengl.*;
 import javax.media.opengl.awt.*;
@@ -12,10 +13,15 @@ import static javax.media.opengl.GL.*;  // GL constants
 import static javax.media.opengl.GL3.*; // GL3 constants
 import static javax.media.opengl.GL2ES2.*; // GL3 constants
 import static javax.media.opengl.GL3.*; // GL3 constants
+
+import java.awt.*;
 import java.io.File; 
+import java.io.FileNotFoundException;
 import java.io.IOException; 
 import java.nio.FloatBuffer; 
 import java.nio.IntBuffer;
+import java.util.Scanner;
+
 import javax.media.opengl.GLAutoDrawable; 
 import javax.media.opengl.GLEventListener; 
 import javax.media.opengl.GLException; 
@@ -28,9 +34,11 @@ import com.hackoeur.jglm.support.*;
 
 public class ApplicationWindow{// implements GLEventListener{
 	
+	protected static final String logSeparator = "---------------\n";
+	
 	protected GLU glu;  // for the GL Utility
 	int program; //shader program
-	static int g_width = 500;
+	static int g_width = 800;
 	static int g_height = 500;
 	
 	//handles
@@ -80,16 +88,90 @@ public class ApplicationWindow{// implements GLEventListener{
 	//protected final GLresources gr;
 	
 	public static void main(String[] args){
-		grid = new Grid(10,10);
-		grid.printGrid();
-		Agent a = new Agent(grid,new Node(1,1));
-		grid.printGrid();
+		//grid initialization variables
+		//if map has only one square, there was a problem with the map file
+		int gridWidth = 1, gridHeight = 1, gridNumGoals = 0;
+		grid = new Grid(gridWidth,gridHeight,gridNumGoals);
+		
+		//Agent initialization variables
+		//if Agent spawns at (0,0), there was a problem with the map file
+		int agentStartX = 0, agentStartY = 0;
+		Agent a = new TestAgent(grid,new Node(agentStartX,agentStartY));
+		try {
+			Scanner sc = new Scanner(new File("table-map.txt"));
+			/*
+			 * THIS HAS NO ERROR CHECKING CODE. ASSUMES ALL MAP FILES FOLLOW
+			 * THIS FORMAT!!! PROBABLY A BAD IDEA BUT SHOULD CHECK WITH KURFESS.
+			 */
+			gridWidth = sc.nextInt(); //first number is width
+			gridHeight = sc.nextInt(); //second number is height
+			gridNumGoals = sc.nextInt(); //third number is number of goals on the map
+			sc.nextLine(); //throw away rest of line
+			
+			//create the grid so we can modify Nodes
+			grid = new Grid(gridWidth+2,gridHeight+2,gridNumGoals);
+			for(int i = 0; i < gridHeight; i++){
+				String nextRow = sc.nextLine();
+				for(int j = 0; j < gridWidth; j++){
+					switch(nextRow.charAt(j)){
+						case 'S':
+							agentStartX = j+1;
+							agentStartY = i+1;
+							break;
+						case 'X':
+							grid.setNode(j+1,i+1,Grid.WALL,true);
+							break;
+						case 'G':
+							grid.setNode(j+1,i+1,Grid.GOAL,true);
+							break;
+						case 'W':
+							grid.setNode(j+1,i+1,Grid.WUMPUS,true);
+							break;
+						case 'M':
+							grid.setNode(j+1,i+1,Grid.MINION,true);
+							break;
+						case 'P':
+							grid.setNode(j+1,i+1,Grid.PIT,true);
+							break;
+					}
+				}
+			}
+			sc.close();
+			
+			//create Agent now that Grid is fully instantiated
+			a = new TestTableAgent(grid,new Node(agentStartX,agentStartY));
+		} catch (FileNotFoundException e) {
+			System.out.println("File not found!");
+		}
+		//grid = new Grid();
 		// Create the frame that will display the environment
-		JFrame frame = new JFrame("Wumpus 3D");
+		JFrame frame = new JFrame("Wumpus Environment 3D");
 		
 		//set frame details
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setMinimumSize(new java.awt.Dimension(g_width, g_height));
+		
+		//create the menu bar for the frame
+		JMenuBar menuBar = new JMenuBar();
+		JMenu fileMenu = new JMenu("File");
+		JMenuItem newSessionOption = new JMenuItem("New Wumpus Environment Session");
+		fileMenu.add(newSessionOption);
+		menuBar.add(fileMenu);
+		frame.setJMenuBar(menuBar);
+		
+		//create the panel that will display the map and the log
+		JPanel mainView = new JPanel();
+		//it will have a map and a log
+		//create map here
+		JTextArea log = new JTextArea( logSeparator +
+									  " * Map start *\n" +
+									  logSeparator ,40,100);
+		log.setEditable(false);
+		log.setFont(new Font("Consolas",Font.PLAIN, 12));
+		JScrollPane logScrollPane = new JScrollPane(log);
+		logScrollPane.setMinimumSize(new Dimension(100,100));
+		mainView.add(logScrollPane);
+		frame.add(mainView);
 		
 		// The OpenGL profile. Handles the version of OpenGL to use
 		/*GLProfile glp = GLProfile.get(GLProfile.GL3);
@@ -108,6 +190,15 @@ public class ApplicationWindow{// implements GLEventListener{
 		//size and display the frame
 		frame.pack();
 		frame.setVisible(true);
+		
+		
+		generateLogEntry(a,log);
+		while(!grid.isSolved()){
+			a.step();
+			generateLogEntry(a,log);
+		}
+		log.append("* You found all the gold! *\n");
+		log.append("*** GAME OVER ***\n");
 	}
 
 	//@Override
@@ -287,5 +378,14 @@ public class ApplicationWindow{// implements GLEventListener{
 	    gl.glColor3f(0, 0, 1);
 	    gl.glVertex2d(s, -s);
 	    gl.glEnd();*/
+	}
+	
+	protected static void generateLogEntry(Agent a, JTextArea log){
+		log.append(grid.gridToString());
+		log.append(a.locationToString());
+		log.append("Agent heading: " + a.headingToString() + "\n");
+		log.append(a.movementStatusToString());
+		log.append(logSeparator);
+		log.append("\n");
 	}
 }
