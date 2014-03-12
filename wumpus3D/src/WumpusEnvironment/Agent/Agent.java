@@ -317,9 +317,9 @@ public abstract class Agent {
 		return ret;
 	}
 	
-	/*public int getMovementCost(){
-	
-	}*/
+	public int getMovementCost(){
+		return 0;
+	}
 	
 	/**
 	 * Returns the current heading of the <code>Agent</code> as an arrow representing a cardinal direction
