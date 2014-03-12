@@ -1,5 +1,8 @@
 package WumpusEnvironment.Agent;
+
+import WumpusEnvironment.ApplicationWindow;
 import WumpusEnvironment.Map.*;
+import java.util.*;
 
 /**
  * Represents the Agent that the programmer will be designing
@@ -11,7 +14,7 @@ public abstract class Agent {
 	public static final int EAST = 1;
 	public static final int SOUTH = 2;
 	public static final int WEST = 3;
-	public int HEADING; //the direction the Agent is facing
+	public static int HEADING; //the direction the Agent is facing
 	
 	public static final int SAFE = 0;
 	public static final int HIT_WALL = 1;
@@ -26,42 +29,51 @@ public abstract class Agent {
 	protected static Grid grid;
 	
 	/**
+	 * The Fairy that will assist the Agent in doing off-line searches
+	 */
+	protected Fairy fairy;
+	
+	/**
+	 * The fringe that may be used for off-line searches
+	 */
+	protected Fringe fringe;
+	
+	/**
 	 * How many goals have been accomplished so far
 	 */
 	protected int goalsSoFar;
 	
 	/**
-	 * The Node the Agent is currently occupying
+	 * The Node the <code>Agent</code> is currently occupying
 	 */
 	protected Node currentNode;
 	
-	public Agent(){
-		
-	}
-	
 	public Agent(Grid g, Node start){
 		grid = g;
+		fairy = null;
+		fringe = new Fringe();
 		currentNode = start;
 		HEADING = EAST;
 		goalsSoFar = 0;
 		
 		//put Agent on Grid
 		grid.setNode(currentNode.getX(),currentNode.getY(),Grid.AGENT,true);
+		grid.setAgentLocation(currentNode);
 	}
 	
 	/**
 	 * Defines what an <code>Agent</code> will do each step
 	 */
 	public void step(){
-		//need check for fairy first
-		//nextSearchStep();
-		
-		nextStep();
+		if(!fairyFoundAllGoals()){
+			nextSearchStep();
+		}
+		else nextStep();
 		
 		//end of method
 		//if(currentNode.hasGoal())
 			//goalsSoFar++;
-		if(goalsSoFar == grid.numGoals())
+		if(goalsSoFar == grid.getNumGoals())
 			gameOver();
 	}
 	
@@ -92,25 +104,25 @@ public abstract class Agent {
 		int addToX = 0, addToY = 0;
 		switch(HEADING){
 			case NORTH:
-				if(!grid.getNode(currentNode.getX(),currentNode.getY()-1).hasWall()){
+				if(!grid.getNode(currentNode.getX(),currentNode.getY()-1).isWall()){
 					addToX = 0;
 					addToY = -1;
 				}
 				break;
 			case EAST:
-				if(!grid.getNode(currentNode.getX()+1,currentNode.getY()).hasWall()){
+				if(!grid.getNode(currentNode.getX()+1,currentNode.getY()).isWall()){
 					addToX = 1;
 					addToY = 0;
 				}
 				break;
 			case SOUTH:
-				if(!grid.getNode(currentNode.getX(),currentNode.getY()+1).hasWall()){
+				if(!grid.getNode(currentNode.getX(),currentNode.getY()+1).isWall()){
 					addToX = 0;
 					addToY = 1;
 				}
 				break;
 			case WEST:
-				if(!grid.getNode(currentNode.getX()-1,currentNode.getY()).hasWall()){
+				if(!grid.getNode(currentNode.getX()-1,currentNode.getY()).isWall()){
 					addToX = -1;
 					addToY = 0;
 				}
@@ -125,6 +137,8 @@ public abstract class Agent {
 		//currentNode.setY(currentNode.getY()+addToY);
 		currentNode = grid.getNode(currentNode.getX()+addToX,currentNode.getY()+addToY);
 		grid.setNode(currentNode.getX(),currentNode.getY(),Grid.AGENT,true); //Agent is now here
+		grid.setAgentLocation(currentNode);
+		grid.addToEvaluated(currentNode); //this Node has now been evaluated
 
 		
 		
@@ -156,6 +170,17 @@ public abstract class Agent {
 		if(HEADING == NORTH)
 			HEADING = WEST;
 		else HEADING--;
+	}
+	
+	/**
+	 * Returns the distance to the closest goal. Treating the line from the
+	 * <code>Agent</code> to the goal as a hypotenuse, the distance is calculated by
+	 * adding together the lengths of the two legs of the triangle, where
+	 * one unit is one <code>Node</code> on the map.
+	 * @return the distance to the closest goal from the <code>Agent</code>
+	 */
+	public int getDistanceToGoal(){
+		return grid.agentToClosestGoal();
 	}
 	
 	/**
@@ -198,12 +223,76 @@ public abstract class Agent {
 		}
 	}
 	
+	/** methods that we will punt to the Fringe class **/	
+	public void addToFringe(Node n){
+		fringe.addToFringe(n);
+	}
+	
+	public Node getNextFringeNode(){
+		return fringe.getNextFringeNode();
+	}
+	
+	public Node peekNextFringeNode(){
+		return fringe.peekNextFringeNode();
+	}
+	
+	public boolean fringeContains(Node n){
+		return fringe.fringeContains(n);
+	}
+	
+	public LinkedList<Node> getFringe(){
+		return fringe.getFringe();
+	}
+	
+	/** methods that we will punt to the Fairy class **/
+	public boolean fairyFoundAllGoals(){
+		return fairy.fairyFoundAllGoals();
+	}
+	
+	public boolean fairyFoundGoal(){
+		return fairy.fairyFoundGoal();
+	}
+	
+	public int fairyGoalsRemaining(){
+		return fairy.fairyGoalsRemaining();
+	}
+	
+	public Node getFairyLocation(){
+		return fairy.getFairyLocation();
+	}
+	
+	public void moveSearchLocation(Node loc){
+		fairy.moveSearchLocation(loc);
+	}
+	
+	public Node getNorthOfFairyLocation(){
+		return fairy.getNorthOfFairyLocation();
+	}
+	
+	public Node getEastOfFairyLocation(){
+		return grid.getNode(currentNode.getX()+1,currentNode.getY());
+	}
+	
+	public Node getSouthOfFairyLocation(){
+		return grid.getNode(currentNode.getX(),currentNode.getY()+1);
+	}
+	
+	public Node getWestOfFairyLocation(){
+		return grid.getNode(currentNode.getX()-1,currentNode.getY());
+	}
+	
 	/** getters and setters **/
 	/**
 	 * Returns the current <code>Node</code> that the <code>Agent</code> is occupying
 	 * @return the current <code>Node</code> that the <code>Agent</code> is occupying
 	 */
-	public Node getCurrentNode(){return currentNode;}
+	public Node getAgentLocation(){return currentNode;}
+	
+	/**
+	 * Assigns the given <code>Fairy</code> to the <code>Agent</code>
+	 * @param f
+	 */
+	public void setFairy(Fairy f){fairy = f;}
 	
 	/**
 	 * Returns the current heading of the <code>Agent</code> as a string
@@ -223,6 +312,33 @@ public abstract class Agent {
 				break;
 			case WEST:
 				ret = "WEST";
+				break;
+		}
+		return ret;
+	}
+	
+	/*public int getMovementCost(){
+	
+	}*/
+	
+	/**
+	 * Returns the current heading of the <code>Agent</code> as an arrow representing a cardinal direction
+	 * @return the current heading of the <code>Agent</code> as an arrow representing a cardinal direction
+	 */
+	public static String headingToArrowString(){
+		String ret = "failure";
+		switch(HEADING){
+			case NORTH:
+				ret = "^";
+				break;
+			case EAST:
+				ret = ">";
+				break;
+			case SOUTH:
+				ret = "v";
+				break;
+			case WEST:
+				ret = "<";
 				break;
 		}
 		return ret;
@@ -259,6 +375,16 @@ public abstract class Agent {
 	
 	public String locationToString(){
 		return "Location: (" + currentNode.getX() + "," + currentNode.getY() + ")\n";
+	}
+	
+	/**
+	 * Allows the developer to print a message to the log. Automatically adds  
+	 * a newline character at the end of the string.
+	 * @param s the String that the developer wants displayed in the log
+	 */
+	public void log(String s){
+		ApplicationWindow.writeToLog(s+"\n");
+		//ApplicationWindow.setLogMessage(s + "\n");
 	}
 
 }

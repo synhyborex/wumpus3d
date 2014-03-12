@@ -35,6 +35,7 @@ import com.hackoeur.jglm.support.*;
 public class ApplicationWindow{// implements GLEventListener{
 	
 	protected static final String logSeparator = "---------------\n";
+	protected static JTextArea log; //we only ever want one log
 	
 	protected GLU glu;  // for the GL Utility
 	int program; //shader program
@@ -96,9 +97,10 @@ public class ApplicationWindow{// implements GLEventListener{
 		//Agent initialization variables
 		//if Agent spawns at (0,0), there was a problem with the map file
 		int agentStartX = 0, agentStartY = 0;
+		boolean fairy = false;
 		Agent a = new TestAgent(grid,new Node(agentStartX,agentStartY));
 		try {
-			Scanner sc = new Scanner(new File("table-map.txt"));
+			Scanner sc = new Scanner(new File("bfs-map.txt"));
 			/*
 			 * THIS HAS NO ERROR CHECKING CODE. ASSUMES ALL MAP FILES FOLLOW
 			 * THIS FORMAT!!! PROBABLY A BAD IDEA BUT SHOULD CHECK WITH KURFESS.
@@ -118,11 +120,17 @@ public class ApplicationWindow{// implements GLEventListener{
 							agentStartX = j+1;
 							agentStartY = i+1;
 							break;
+						case 'F':
+							agentStartX = j+1;
+							agentStartY = i+1;
+							fairy = true;
+							break;
 						case 'X':
 							grid.setNode(j+1,i+1,Grid.WALL,true);
 							break;
 						case 'G':
 							grid.setNode(j+1,i+1,Grid.GOAL,true);
+							grid.setGoalLocation(new Node(j+1,i+1));
 							break;
 						case 'W':
 							grid.setNode(j+1,i+1,Grid.WUMPUS,true);
@@ -139,7 +147,10 @@ public class ApplicationWindow{// implements GLEventListener{
 			sc.close();
 			
 			//create Agent now that Grid is fully instantiated
-			a = new TestTableAgent(grid,new Node(agentStartX,agentStartY));
+			a = new TestBFSAgent(grid,new Node(agentStartX,agentStartY));
+			if(fairy){
+				a.setFairy(new Fairy(grid,new Node(agentStartX,agentStartY)));
+			}
 		} catch (FileNotFoundException e) {
 			System.out.println("File not found!");
 		}
@@ -163,9 +174,9 @@ public class ApplicationWindow{// implements GLEventListener{
 		JPanel mainView = new JPanel();
 		//it will have a map and a log
 		//create map here
-		JTextArea log = new JTextArea( logSeparator +
-									  " * Map start *\n" +
-									  logSeparator ,40,100);
+		log = new JTextArea(logSeparator +
+							" * Map start *\n" +
+							logSeparator ,40,100);
 		log.setEditable(false);
 		log.setFont(new Font("Consolas",Font.PLAIN, 12));
 		JScrollPane logScrollPane = new JScrollPane(log);
@@ -195,11 +206,19 @@ public class ApplicationWindow{// implements GLEventListener{
 		generateLogEntry(a,log);
 		while(!grid.isSolved()){
 			a.step();
-			generateLogEntry(a,log);
+			if(a.fairyFoundAllGoals()) generateLogEntry(a,log);
 		}
 		log.append("* You found all the gold! *\n");
 		log.append("*** GAME OVER ***\n");
 	}
+	/*
+	 * Search position: 3 2
+Search position: 3 1
+Search position: 4 2
+Search position: 2 2
+Search position: 4 1
+Search position: 2 1
+	 */
 
 	//@Override
 	public void display(GLAutoDrawable drawable) {
@@ -381,11 +400,15 @@ public class ApplicationWindow{// implements GLEventListener{
 	}
 	
 	protected static void generateLogEntry(Agent a, JTextArea log){
-		log.append(grid.gridToString());
-		log.append(a.locationToString());
-		log.append("Agent heading: " + a.headingToString() + "\n");
-		log.append(a.movementStatusToString());
-		log.append(logSeparator);
+		log.append(grid.gridToString()); //print the grid
+		log.append(a.locationToString()); //print the Agent's location
+		log.append("Agent heading: " + a.headingToString() + "\n"); //print the Agent's heading
+		log.append(a.movementStatusToString()); //print what happened last step
+		log.append(logSeparator); //print the separator for the next round
 		log.append("\n");
 	}
+	
+	public static JTextArea getLog(){return log;}
+	
+	public static void writeToLog(String s){log.append(s);}
 }
