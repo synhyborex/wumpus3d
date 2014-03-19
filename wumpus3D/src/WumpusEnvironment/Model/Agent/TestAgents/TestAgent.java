@@ -1,8 +1,8 @@
-package WumpusEnvironment.Agent.TestAgents;
+package WumpusEnvironment.Model.Agent.TestAgents;
 
-import WumpusEnvironment.Agent.Agent;
-import WumpusEnvironment.Map.Grid;
-import WumpusEnvironment.Map.Node;
+import WumpusEnvironment.Model.Agent.Agent;
+import WumpusEnvironment.Model.Map.Grid;
+import WumpusEnvironment.Model.Map.Node;
 
 public class TestAgent extends Agent {
 	

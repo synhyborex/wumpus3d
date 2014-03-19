@@ -1,18 +1,22 @@
-package WumpusEnvironment.Agent;
+package WumpusEnvironment.Model.Agent;
 
 import java.util.*;
 
-import WumpusEnvironment.Map.Node;
+import WumpusEnvironment.Model.Map.Node;
 
 public class Fringe {
 
-	protected LinkedList<Node> fringe;
+	protected ArrayDeque<Node> fringe;
 	public Fringe() {
-		fringe = new LinkedList<Node>();
+		fringe = new ArrayDeque<Node>();
 	}
 	
-	public void addToFringe(Node n){
+	public void addToFringeTail(Node n){
 		fringe.addLast(n);
+	}
+	
+	public void addToFringeHead(Node n){
+		fringe.addFirst(n);
 	}
 	
 	public Node getNextFringeNode(){
@@ -27,7 +31,7 @@ public class Fringe {
 		return fringe.contains(n);
 	}
 	
-	public LinkedList<Node> getFringe(){
+	public ArrayDeque<Node> getFringe(){
 		return fringe;
 	}
 

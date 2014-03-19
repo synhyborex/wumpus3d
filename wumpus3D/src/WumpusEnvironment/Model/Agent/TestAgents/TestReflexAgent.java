@@ -1,10 +1,10 @@
-package WumpusEnvironment.Agent.TestAgents;
+package WumpusEnvironment.Model.Agent.TestAgents;
 
 //import WumpusEnvironment.*;
 import java.util.Random;
 
-import WumpusEnvironment.Agent.*;
-import WumpusEnvironment.Map.*;
+import WumpusEnvironment.Model.Agent.*;
+import WumpusEnvironment.Model.Map.*;
 
 public class TestReflexAgent extends Agent {
 	private final static int maxNumDirections = 4;

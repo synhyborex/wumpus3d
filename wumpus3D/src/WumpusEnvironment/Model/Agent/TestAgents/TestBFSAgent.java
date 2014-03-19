@@ -1,7 +1,7 @@
-package WumpusEnvironment.Agent.TestAgents;
+package WumpusEnvironment.Model.Agent.TestAgents;
 
-import WumpusEnvironment.Agent.Agent;
-import WumpusEnvironment.Map.*;
+import WumpusEnvironment.Model.Agent.Agent;
+import WumpusEnvironment.Model.Map.*;
 
 public class TestBFSAgent extends Agent {
 	
@@ -24,7 +24,7 @@ public class TestBFSAgent extends Agent {
 	    //log(getSearchLocation().getX() + " " + getSearchLocation().getY());
 	    while(peekNextFringeNode() != null){ //while there are still nodes to visit
 	      Node curr = getNextFringeNode(); //get next node in fringe
-	      moveSearchLocation(curr); //move to next fringe location
+	      moveFairyLocation(curr); //move to next fringe location
 	      //totalSearchCost += getSearchCost(); //update search cost
 
 	      /* display search position */

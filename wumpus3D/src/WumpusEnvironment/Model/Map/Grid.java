@@ -1,6 +1,6 @@
-package WumpusEnvironment.Map;
+package WumpusEnvironment.Model.Map;
 
-import WumpusEnvironment.Agent.Agent;
+import WumpusEnvironment.Model.Agent.*;
 import java.util.*;
 
 /**

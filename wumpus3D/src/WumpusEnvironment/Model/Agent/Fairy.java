@@ -1,6 +1,6 @@
-package WumpusEnvironment.Agent;
+package WumpusEnvironment.Model.Agent;
 
-import WumpusEnvironment.Map.*;
+import WumpusEnvironment.Model.Map.*;
 
 public class Fairy {
 	
@@ -67,7 +67,7 @@ public class Fairy {
 		return currentNode;
 	}
 	
-	public void moveSearchLocation(Node loc){
+	public void moveFairyLocation(Node loc){
 		grid.setNode(currentNode.getX(),currentNode.getY(),Grid.FAIRY,false); //Fairy has moved from this spot
 		currentNode = loc;
 		grid.setNode(currentNode.getX(),currentNode.getY(),Grid.FAIRY,true); //Fairy is now here

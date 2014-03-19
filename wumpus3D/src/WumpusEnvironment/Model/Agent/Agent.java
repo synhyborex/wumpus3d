@@ -1,7 +1,8 @@
-package WumpusEnvironment.Agent;
+package WumpusEnvironment.Model.Agent;
 
-import WumpusEnvironment.ApplicationWindow;
-import WumpusEnvironment.Map.*;
+import WumpusEnvironment.View.MainWindow.*;
+import WumpusEnvironment.Model.Map.*;
+
 import java.util.*;
 
 /**
@@ -65,7 +66,7 @@ public abstract class Agent {
 	 * Defines what an <code>Agent</code> will do each step
 	 */
 	public void step(){
-		if(!fairyFoundAllGoals()){
+		if(fairy != null && !fairyFoundAllGoals()){
 			nextSearchStep();
 		}
 		else nextStep();
@@ -225,7 +226,11 @@ public abstract class Agent {
 	
 	/** methods that we will punt to the Fringe class **/	
 	public void addToFringe(Node n){
-		fringe.addToFringe(n);
+		fringe.addToFringeTail(n);
+	}
+	
+	public void addToFringeHead(Node n){
+		fringe.addToFringeHead(n);
 	}
 	
 	public Node getNextFringeNode(){
@@ -240,7 +245,7 @@ public abstract class Agent {
 		return fringe.fringeContains(n);
 	}
 	
-	public LinkedList<Node> getFringe(){
+	public ArrayDeque<Node> getFringe(){
 		return fringe.getFringe();
 	}
 	
@@ -261,8 +266,8 @@ public abstract class Agent {
 		return fairy.getFairyLocation();
 	}
 	
-	public void moveSearchLocation(Node loc){
-		fairy.moveSearchLocation(loc);
+	public void moveFairyLocation(Node loc){
+		fairy.moveFairyLocation(loc);
 	}
 	
 	public Node getNorthOfFairyLocation(){

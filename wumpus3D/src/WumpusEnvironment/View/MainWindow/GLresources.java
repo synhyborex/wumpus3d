@@ -1,4 +1,4 @@
-package WumpusEnvironment;
+package WumpusEnvironment.View.MainWindow;
 
 import com.jogamp.opengl.util.glsl.ShaderCode;
 

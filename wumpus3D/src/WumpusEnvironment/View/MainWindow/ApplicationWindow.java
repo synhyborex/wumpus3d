@@ -1,7 +1,7 @@
-package WumpusEnvironment;
-import WumpusEnvironment.Map.*;
-import WumpusEnvironment.Agent.*;
-import WumpusEnvironment.Agent.TestAgents.*;
+package WumpusEnvironment.View.MainWindow;
+import WumpusEnvironment.Model.Agent.TestAgents.*;
+import WumpusEnvironment.Model.Agent.*;
+import WumpusEnvironment.Model.Map.*;
 
 import javax.media.opengl.*;
 import javax.media.opengl.awt.*;
@@ -100,7 +100,7 @@ public class ApplicationWindow{// implements GLEventListener{
 		boolean fairy = false;
 		Agent a = new TestAgent(grid,new Node(agentStartX,agentStartY));
 		try {
-			Scanner sc = new Scanner(new File("bfs-map.txt"));
+			Scanner sc = new Scanner(new File("modelbased-map.txt"));
 			/*
 			 * THIS HAS NO ERROR CHECKING CODE. ASSUMES ALL MAP FILES FOLLOW
 			 * THIS FORMAT!!! PROBABLY A BAD IDEA BUT SHOULD CHECK WITH KURFESS.
@@ -147,7 +147,7 @@ public class ApplicationWindow{// implements GLEventListener{
 			sc.close();
 			
 			//create Agent now that Grid is fully instantiated
-			a = new TestBFSAgent(grid,new Node(agentStartX,agentStartY));
+			a = new TestModelBasedAgent(grid,new Node(agentStartX,agentStartY));
 			if(fairy){
 				a.setFairy(new Fairy(grid,new Node(agentStartX,agentStartY)));
 			}
@@ -206,19 +206,16 @@ public class ApplicationWindow{// implements GLEventListener{
 		generateLogEntry(a,log);
 		while(!grid.isSolved()){
 			a.step();
-			if(a.fairyFoundAllGoals()) generateLogEntry(a,log);
+			if(fairy){
+				if(a.fairyFoundAllGoals()){
+					generateLogEntry(a,log);
+				}
+			}
+			generateLogEntry(a,log);
 		}
 		log.append("* You found all the gold! *\n");
 		log.append("*** GAME OVER ***\n");
 	}
-	/*
-	 * Search position: 3 2
-Search position: 3 1
-Search position: 4 2
-Search position: 2 2
-Search position: 4 1
-Search position: 2 1
-	 */
 
 	//@Override
 	public void display(GLAutoDrawable drawable) {

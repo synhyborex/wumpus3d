@@ -1,7 +1,7 @@
-package WumpusEnvironment.Agent.TestAgents;
+package WumpusEnvironment.Model.Agent.TestAgents;
 
-import WumpusEnvironment.Agent.Agent;
-import WumpusEnvironment.Map.*;
+import WumpusEnvironment.Model.Agent.Agent;
+import WumpusEnvironment.Model.Map.*;
 
 public class TestModelBasedAgent extends Agent {
 	

@@ -1,4 +1,4 @@
-package WumpusEnvironment.Map;
+package WumpusEnvironment.Model.Map;
 
 /**
  * Represents an individual node in the Grid
