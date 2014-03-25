@@ -97,10 +97,10 @@ public class ApplicationWindow{// implements GLEventListener{
 		//Agent initialization variables
 		//if Agent spawns at (0,0), there was a problem with the map file
 		int agentStartX = 0, agentStartY = 0;
-		boolean fairy = false;
+		boolean fairy = true;
 		Agent a = new TestAgent(grid,new Node(agentStartX,agentStartY));
 		try {
-			Scanner sc = new Scanner(new File("modelbased-map.txt"));
+			Scanner sc = new Scanner(new File("bfs-map.txt"));
 			/*
 			 * THIS HAS NO ERROR CHECKING CODE. ASSUMES ALL MAP FILES FOLLOW
 			 * THIS FORMAT!!! PROBABLY A BAD IDEA BUT SHOULD CHECK WITH KURFESS.
@@ -147,7 +147,7 @@ public class ApplicationWindow{// implements GLEventListener{
 			sc.close();
 			
 			//create Agent now that Grid is fully instantiated
-			a = new TestModelBasedAgent(grid,new Node(agentStartX,agentStartY));
+			a = new TestUniformAgent(grid,new Node(agentStartX,agentStartY));
 			if(fairy){
 				a.setFairy(new Fairy(grid,new Node(agentStartX,agentStartY)));
 			}
@@ -211,7 +211,7 @@ public class ApplicationWindow{// implements GLEventListener{
 					generateLogEntry(a,log);
 				}
 			}
-			generateLogEntry(a,log);
+			else generateLogEntry(a,log);
 		}
 		log.append("* You found all the gold! *\n");
 		log.append("*** GAME OVER ***\n");

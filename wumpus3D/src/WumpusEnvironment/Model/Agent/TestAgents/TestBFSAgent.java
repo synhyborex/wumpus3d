@@ -14,8 +14,7 @@ public class TestBFSAgent extends Agent {
 
 	@Override
 	public void nextStep() {
-		// TODO Auto-generated method stub
-
+		
 	}
 	
 	public void nextSearchStep(){
@@ -24,6 +23,9 @@ public class TestBFSAgent extends Agent {
 	    //log(getSearchLocation().getX() + " " + getSearchLocation().getY());
 	    while(peekNextFringeNode() != null){ //while there are still nodes to visit
 	      Node curr = getNextFringeNode(); //get next node in fringe
+	      if(!getFairyLocation().isEvaluated()){
+	    	  System.out.println("uh oh " + getFairyLocation().getX() + " " + getFairyLocation().getY());
+	      }
 	      moveFairyLocation(curr); //move to next fringe location
 	      //totalSearchCost += getSearchCost(); //update search cost
 
@@ -53,7 +55,7 @@ public class TestBFSAgent extends Agent {
 	      add = getWestOfFairyLocation(); //add west location
 	      if(!add.isEvaluated() && !fringeContains(add) && !add.isWall())
 	        addToFringe(add);
-	      log(""+getFringe().size());
+	      //log(""+getFringe().size());
 	    }
 	}
 

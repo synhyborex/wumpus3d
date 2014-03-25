@@ -57,5 +57,6 @@ public class Node implements Comparable<Node>{
 	public boolean hasAgent(){return hasAgent;}
 	public boolean hasFairy(){return hasFairy;}
 	public boolean isEvaluated(){return evaluated;}
+	public int getCost(){return 0;} //COULD POTENTIALLY CHANGE!!!!
 	
 }

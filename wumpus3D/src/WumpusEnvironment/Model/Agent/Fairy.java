@@ -64,14 +64,33 @@ public class Fairy {
 	}
 	
 	public Node getFairyLocation(){
-		return currentNode;
+		return grid.getNode(currentNode.getX(),currentNode.getY());
 	}
 	
-	public void moveFairyLocation(Node loc){
+	public int moveFairyLocation(Node loc){
 		grid.setNode(currentNode.getX(),currentNode.getY(),Grid.FAIRY,false); //Fairy has moved from this spot
 		currentNode = loc;
 		grid.setNode(currentNode.getX(),currentNode.getY(),Grid.FAIRY,true); //Fairy is now here
 		grid.addToEvaluated(loc);
+		
+		return newNodeStatus();
+	}
+	
+	/**
+	 * Determines the value of what is occupying the <code>Node</code> other than the <code>Agent</code>
+	 * @return the value of what is occupying the <code>Node</code> other than the <code>Agent</code>
+	 */
+	protected int newNodeStatus(){
+		int value = SAFE;
+		if(currentNode.hasGoal()){
+			value =  GOAL_FOUND;
+			goalsSoFar++;
+		}
+		else if(currentNode.hasWumpus()) value =  HIT_WUMPUS;
+		else if(currentNode.hasPit()) value =  HIT_PIT;
+		else if(currentNode.hasMinion()) value = HIT_MINION;
+		//printAgentStatus(value); //print the status of the Agent at the new Node
+		return value;
 	}
 	
 	public Node getNorthOfFairyLocation(){

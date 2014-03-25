@@ -49,17 +49,32 @@ public abstract class Agent {
 	 */
 	protected Node currentNode;
 	
+	/**
+	 * The Node at which the <code>Agent</code> starts on the map. Used for reset().
+	 */
+	protected Node startNode;
+	
 	public Agent(Grid g, Node start){
 		grid = g;
 		fairy = null;
 		fringe = new Fringe();
+		startNode = start;
 		currentNode = start;
 		HEADING = EAST;
 		goalsSoFar = 0;
 		
 		//put Agent on Grid
+		grid.addToEvaluated(currentNode);
 		grid.setNode(currentNode.getX(),currentNode.getY(),Grid.AGENT,true);
 		grid.setAgentLocation(currentNode);
+	}
+	
+	public void reset(){
+		//fairy = new Fairy(grid,startNode);
+		fringe = new Fringe();
+		currentNode = startNode;
+		HEADING = EAST;
+		goalsSoFar = 0;
 	}
 	
 	/**
@@ -275,15 +290,15 @@ public abstract class Agent {
 	}
 	
 	public Node getEastOfFairyLocation(){
-		return grid.getNode(currentNode.getX()+1,currentNode.getY());
+		return fairy.getEastOfFairyLocation();
 	}
 	
 	public Node getSouthOfFairyLocation(){
-		return grid.getNode(currentNode.getX(),currentNode.getY()+1);
+		return fairy.getSouthOfFairyLocation();
 	}
 	
 	public Node getWestOfFairyLocation(){
-		return grid.getNode(currentNode.getX()-1,currentNode.getY());
+		return fairy.getWestOfFairyLocation();
 	}
 	
 	/** getters and setters **/
@@ -291,7 +306,7 @@ public abstract class Agent {
 	 * Returns the current <code>Node</code> that the <code>Agent</code> is occupying
 	 * @return the current <code>Node</code> that the <code>Agent</code> is occupying
 	 */
-	public Node getAgentLocation(){return currentNode;}
+	public Node getAgentLocation(){return grid.getNode(currentNode.getX(),currentNode.getY());}
 	
 	/**
 	 * Assigns the given <code>Fairy</code> to the <code>Agent</code>

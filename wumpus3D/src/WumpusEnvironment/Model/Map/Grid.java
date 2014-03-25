@@ -116,7 +116,7 @@ public class Grid {
 	}
 	
 	public void addToEvaluated(Node n){
-		n.setAsEvaluated();
+		grid[n.getY()][n.getX()].setAsEvaluated();
 	}
 
 	/** getters and setters **/
