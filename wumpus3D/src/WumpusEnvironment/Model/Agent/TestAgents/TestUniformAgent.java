@@ -7,6 +7,7 @@ import java.util.*;
 
 public class TestUniformAgent extends Agent 
 {
+	//test comment
   int goalX, goalY;
   double[][] cost;
   PriorityQueue<GreedyNode> pq;
