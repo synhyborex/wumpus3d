@@ -15,6 +15,7 @@ import static javax.media.opengl.GL2ES2.*; // GL3 constants
 import static javax.media.opengl.GL3.*; // GL3 constants
 
 import java.awt.*;
+import java.awt.event.*;
 import java.io.File; 
 import java.io.FileNotFoundException;
 import java.io.IOException; 
@@ -97,7 +98,7 @@ public class ApplicationWindow{// implements GLEventListener{
 		//Agent initialization variables
 		//if Agent spawns at (0,0), there was a problem with the map file
 		int agentStartX = 0, agentStartY = 0;
-		boolean fairy = true;
+		boolean fairy = false;
 		Agent a = new TestAgent(grid,new Node(agentStartX,agentStartY));
 		try {
 			Scanner sc = new Scanner(new File("bfs-map.txt"));
@@ -160,28 +161,40 @@ public class ApplicationWindow{// implements GLEventListener{
 		
 		//set frame details
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setMinimumSize(new java.awt.Dimension(g_width, g_height));
+		frame.setMinimumSize(new Dimension(g_width, g_height));
 		
 		//create the menu bar for the frame
 		JMenuBar menuBar = new JMenuBar();
+		//file menu
 		JMenu fileMenu = new JMenu("File");
 		JMenuItem newSessionOption = new JMenuItem("New Wumpus Environment Session");
+		newSessionOption.addActionListener(new ActionListener() { //what to do when a new session is requested
+ 
+            public void actionPerformed(ActionEvent e){
+                System.out.println("You clicked the button");
+            }
+        });
 		fileMenu.add(newSessionOption);
 		menuBar.add(fileMenu);
+		
 		frame.setJMenuBar(menuBar);
 		
-		//create the panel that will display the map and the log
-		JPanel mainView = new JPanel();
 		//it will have a map and a log
-		//create map here
+		//create log panel
 		log = new JTextArea(logSeparator +
 							" * Map start *\n" +
 							logSeparator ,40,100);
 		log.setEditable(false);
 		log.setFont(new Font("Consolas",Font.PLAIN, 12));
 		JScrollPane logScrollPane = new JScrollPane(log);
-		logScrollPane.setMinimumSize(new Dimension(100,100));
-		mainView.add(logScrollPane);
+		//create map panel
+		JPanel mapPanel = new JPanel();		
+		
+		//create the split pane that will display the map and the log
+		JSplitPane mainView = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+				mapPanel,logScrollPane);
+		mainView.setDividerLocation(g_width-275); //log is smaller size than map
+		mainView.setResizeWeight(1.0); //make sure only map gets resized when frame gets resized
 		frame.add(mainView);
 		
 		// The OpenGL profile. Handles the version of OpenGL to use
