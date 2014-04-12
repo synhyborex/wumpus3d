@@ -57,7 +57,7 @@ public class Grid {
 		}
 		
 		//initialize location of Agent
-		agentLocation = new Node(-1,-1);
+		agentLocation = new Node(0,0);
 	}
 	
 	/**
@@ -118,6 +118,23 @@ public class Grid {
 	public void addToEvaluated(Node n){
 		grid[n.getY()][n.getX()].setAsEvaluated();
 	}
+	
+	public int agentToClosestGoal(){
+		if(numGoals == 1) return distanceBetweenNodes(agentLocation,goalLocations[0]);
+		
+		int shortest = distanceBetweenNodes(agentLocation,goalLocations[0]);
+		for(int i = 1; i < goalLocations.length; i++){
+			int dist = distanceBetweenNodes(agentLocation,goalLocations[i]);
+			if(dist < shortest){
+				shortest = dist;
+			}
+		}		
+		return shortest;
+	}
+	
+	protected int distanceBetweenNodes(Node a, Node b){
+		return Math.abs(a.getX()-b.getX()) + Math.abs(a.getY()-b.getY());
+	}
 
 	/** getters and setters **/
 	/**
@@ -127,6 +144,30 @@ public class Grid {
 	public int getNumGoals(){
 		return numGoals;
 	}
+	
+	/**
+	 * Returns the location of the <code>Agent</code> on the <code>Grid</code>
+	 * @return the location of the <code>Agent</code> on the <code>Grid</code>
+	 */
+	public Node getAgentLocation(){
+		return agentLocation;
+	}
+	
+	/**
+	 * Returns the <code>Node</code> at the requested location on the map
+	 * @param x the x location on the map
+	 * @param y the y location on the map
+	 * @return the <code>Node</code> at the given (x,y) location on the map
+	 */
+	public Node getNode(int x, int y){
+		return grid[y][x];
+	}
+	
+	/**
+	 * Returns whether or not all the goals on the map have been found.
+	 * @return <code>true</code> if all goals have been found, <code>false</code> otherwise
+	 */
+	public boolean isSolved(){return solved;}
 	
 	/**
 	 * Allows the setting of the boolean values that represent map objects.
@@ -164,34 +205,24 @@ public class Grid {
 		}
 	}
 	
-	public Node getNode(int y, int x){
-		return grid[x][y];
-	}
-	
-	public boolean isSolved(){return solved;}
+	/**
+	 * Sets whether or not the map has been solved
+	 * @param solved if this is <code>true</code>, then the map will be set to solved, and vice versa
+	 */
 	public void setSolved(boolean solved){this.solved = solved;}
 	
-	public int agentToClosestGoal(){
-		if(numGoals == 1) return distanceBetweenNodes(agentLocation,goalLocations[0]);
-		
-		int shortest = distanceBetweenNodes(agentLocation,goalLocations[0]);
-		for(int i = 1; i < goalLocations.length; i++){
-			int dist = distanceBetweenNodes(agentLocation,goalLocations[i]);
-			if(dist < shortest){
-				shortest = dist;
-			}
-		}		
-		return shortest;
-	}
-	
-	protected int distanceBetweenNodes(Node a, Node b){
-		return Math.abs(a.getX()-b.getX()) + Math.abs(a.getY()-b.getY());
-	}
-	
+	/**
+	 * Sets the location of the <code>Agent</code> to the given <code>Node</code>
+	 * @param loc the <code>Node</code> that the <code>Agent</code> should be relocated to
+	 */
 	public void setAgentLocation(Node loc){
 		agentLocation = loc;
 	}
 	
+	/**
+	 * Sets the given <code>Node</code> to contain a goal
+	 * @param loc the <code>Node</code> that should be turned into a goal square
+	 */
 	public void setGoalLocation(Node loc){
 		for(int i = 0; i < goalLocations.length; i++){
 			if(goalLocations[i].getX() == -1){

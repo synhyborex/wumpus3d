@@ -9,8 +9,8 @@ import WumpusEnvironment.Model.Map.*;
 public class TestReflexAgent extends Agent {
 	private final static int maxNumDirections = 4;
 	
-	public TestReflexAgent(Grid g, Node start){
-		super(g,start);
+	public TestReflexAgent(){
+		super();
 	}
 
 	@Override

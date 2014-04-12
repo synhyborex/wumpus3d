@@ -8,6 +8,8 @@ import javax.media.opengl.awt.*;
 import javax.media.opengl.glu.*;
 import javax.media.opengl.DebugGL3;
 import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
+
 import com.jogamp.opengl.util.*;
 import static javax.media.opengl.GL.*;  // GL constants
 import static javax.media.opengl.GL3.*; // GL3 constants
@@ -16,9 +18,7 @@ import static javax.media.opengl.GL3.*; // GL3 constants
 
 import java.awt.*;
 import java.awt.event.*;
-import java.io.File; 
-import java.io.FileNotFoundException;
-import java.io.IOException; 
+import java.io.*;
 import java.nio.FloatBuffer; 
 import java.nio.IntBuffer;
 import java.util.Scanner;
@@ -33,7 +33,7 @@ import com.hackoeur.jglm.*;
 import com.hackoeur.jglm.buffer.*;
 import com.hackoeur.jglm.support.*;
 
-public class ApplicationWindow{// implements GLEventListener{
+public class ApplicationWindow  extends JFrame implements ActionListener{// implements GLEventListener{
 	
 	protected static final String logSeparator = "---------------\n";
 	protected static JTextArea log; //we only ever want one log
@@ -41,7 +41,7 @@ public class ApplicationWindow{// implements GLEventListener{
 	protected GLU glu;  // for the GL Utility
 	int program; //shader program
 	static int g_width = 800;
-	static int g_height = 500;
+	static int g_height = 600;
 	
 	//handles
 	int h_aPosition;
@@ -87,9 +87,79 @@ public class ApplicationWindow{// implements GLEventListener{
 	//GLenum j;
 	
 	protected static Grid grid;
+	protected static Agent agent;
 	//protected final GLresources gr;
 	
+	//menu bar
+	JMenuBar menuBar;
+	//file menu
+	JMenu fileMenu; 
+	JMenuItem newSessionOption;
+	JFileChooser agentChooser;
+	
+	//main view
+	JSplitPane mainView; //the main view for the log and map
+	JScrollPane logScrollPane; //the log pane
+	JPanel mapPane; //the map pane
+	
+	public ApplicationWindow(){
+		super("Wumpus Environment 3D");
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setMinimumSize(new Dimension(g_width, g_height));
+		
+		//create the menu bar for the frame
+		//file menu
+		menuBar = new JMenuBar();
+		fileMenu = new JMenu("File");
+		newSessionOption = new JMenuItem("New Wumpus Environment Session");
+		agentChooser = new JFileChooser("."); //the file chooser for the Agent
+		agentChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+		newSessionOption.addActionListener(this);
+		fileMenu.add(newSessionOption);
+		
+		//add to frame
+		menuBar.add(fileMenu); //add file menu to menu bar
+		setJMenuBar(menuBar); //add menu bar to frame
+		
+		//it will have a map and a log
+		//create log panel
+		log = new JTextArea("",40,100);
+		log.setEditable(false);
+		log.setFont(new Font("Consolas",Font.PLAIN, 12));
+		logScrollPane = new JScrollPane(log);
+		//create map panel
+		mapPane = new JPanel();		
+		
+		//create the split pane that will display the map and the log
+		mainView = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+				mapPane,logScrollPane);
+		mainView.setDividerLocation(g_width-275); //log is smaller size than map
+		mainView.setResizeWeight(1.0); //make sure only map gets resized when frame gets resized
+		add(mainView);
+	}
+	
 	public static void main(String[] args){
+		// Create the frame that will display the environment
+		JFrame frame = new ApplicationWindow();		
+		
+		// The OpenGL profile. Handles the version of OpenGL to use
+		/*GLProfile glp = GLProfile.get(GLProfile.GL3);
+		GLProfile.initSingleton();
+		GLCapabilities caps = new GLCapabilities(glp);
+		GLCanvas canvas = new GLCanvas(caps);
+		
+		// The Animator we need for the render loop
+		//Animator animator = new Animator(canvas);
+		//animator.start();
+		
+		//create components and put them in the frame
+		frame.getContentPane().add(canvas);
+		canvas.addGLEventListener(new ApplicationWindow());*/
+		
+		//size and display the frame
+		frame.pack();
+		frame.setVisible(true);
+		
 		//grid initialization variables
 		//if map has only one square, there was a problem with the map file
 		int gridWidth = 1, gridHeight = 1, gridNumGoals = 0;
@@ -99,7 +169,7 @@ public class ApplicationWindow{// implements GLEventListener{
 		//if Agent spawns at (0,0), there was a problem with the map file
 		int agentStartX = 0, agentStartY = 0;
 		boolean fairy = false;
-		Agent a = new TestAgent(grid,new Node(agentStartX,agentStartY));
+		//Agent a = new TestAgent();
 		try {
 			Scanner sc = new Scanner(new File("bfs-map.txt"));
 			/*
@@ -146,89 +216,61 @@ public class ApplicationWindow{// implements GLEventListener{
 				}
 			}
 			sc.close();
-			
-			//create Agent now that Grid is fully instantiated
-			a = new TestUniformAgent(grid,new Node(agentStartX,agentStartY));
-			if(fairy){
-				a.setFairy(new Fairy(grid,new Node(agentStartX,agentStartY)));
-			}
+			grid.setAgentLocation(new Node(agentStartX,agentStartY));
 		} catch (FileNotFoundException e) {
 			System.out.println("File not found!");
+			System.exit(1);
 		}
-		//grid = new Grid();
-		// Create the frame that will display the environment
-		JFrame frame = new JFrame("Wumpus Environment 3D");
 		
-		//set frame details
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setMinimumSize(new Dimension(g_width, g_height));
-		
-		//create the menu bar for the frame
-		JMenuBar menuBar = new JMenuBar();
-		//file menu
-		JMenu fileMenu = new JMenu("File");
-		JMenuItem newSessionOption = new JMenuItem("New Wumpus Environment Session");
-		newSessionOption.addActionListener(new ActionListener() { //what to do when a new session is requested
- 
-            public void actionPerformed(ActionEvent e){
-                System.out.println("You clicked the button");
-            }
-        });
-		fileMenu.add(newSessionOption);
-		menuBar.add(fileMenu);
-		
-		frame.setJMenuBar(menuBar);
-		
-		//it will have a map and a log
-		//create log panel
-		log = new JTextArea(logSeparator +
-							" * Map start *\n" +
-							logSeparator ,40,100);
-		log.setEditable(false);
-		log.setFont(new Font("Consolas",Font.PLAIN, 12));
-		JScrollPane logScrollPane = new JScrollPane(log);
-		//create map panel
-		JPanel mapPanel = new JPanel();		
-		
-		//create the split pane that will display the map and the log
-		JSplitPane mainView = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-				mapPanel,logScrollPane);
-		mainView.setDividerLocation(g_width-275); //log is smaller size than map
-		mainView.setResizeWeight(1.0); //make sure only map gets resized when frame gets resized
-		frame.add(mainView);
-		
-		// The OpenGL profile. Handles the version of OpenGL to use
-		/*GLProfile glp = GLProfile.get(GLProfile.GL3);
-		GLProfile.initSingleton();
-		GLCapabilities caps = new GLCapabilities(glp);
-		GLCanvas canvas = new GLCanvas(caps);
-		
-		// The Animator we need for the render loop
-		//Animator animator = new Animator(canvas);
-		//animator.start();
-		
-		//create components and put them in the frame
-		frame.getContentPane().add(canvas);
-		canvas.addGLEventListener(new ApplicationWindow());*/
-		
-		//size and display the frame
-		frame.pack();
-		frame.setVisible(true);
-		
-		
-		generateLogEntry(a,log);
-		while(!grid.isSolved()){
-			a.step();
+		//create Agent now that Grid is fully instantiated
+		//agent = AgentLoader.loadAgentFromFile(file);
+		if(agent != null){
 			if(fairy){
-				if(a.fairyFoundAllGoals()){
-					generateLogEntry(a,log);
-				}
+				agent.setFairy(new Fairy(grid,grid.getAgentLocation()));
 			}
-			else generateLogEntry(a,log);
+			log.append(logSeparator +
+					" * Map start *\n" +
+					logSeparator);
+			generateLogEntry(agent,log);
+			while(!grid.isSolved()){
+				agent.step();
+				if(fairy){
+					if(agent.fairyFoundAllGoals()){
+						generateLogEntry(agent,log);
+					}
+				}
+				else generateLogEntry(agent,log);
+			}
+			log.append("* You found all the gold! *\n");
+			log.append("*** GAME OVER ***\n");
 		}
-		log.append("* You found all the gold! *\n");
-		log.append("*** GAME OVER ***\n");
 	}
+	
+	public void actionPerformed(ActionEvent e){
+		Object source = e.getSource();
+		
+		//option for choosing agent
+		if(source.equals(newSessionOption)){
+	        agentChooser.setFileFilter(new FileFilter() {
+	        	 
+	            public String getDescription() {
+	                return "Java class files (*.class)";
+	            }
+	         
+	            public boolean accept(File f) {
+	                if (f.isDirectory()) {
+	                    return true;
+	                } else {
+	                    return f.getName().toLowerCase().endsWith(".class");
+	                }
+	            }
+	        });
+	        int result = agentChooser.showOpenDialog(this);
+	        if(result == JFileChooser.APPROVE_OPTION){
+	        	agent = AgentLoader.loadAgentFromFile(agentChooser.getSelectedFile());
+	        }
+		}
+    }
 
 	//@Override
 	public void display(GLAutoDrawable drawable) {
@@ -421,4 +463,6 @@ public class ApplicationWindow{// implements GLEventListener{
 	public static JTextArea getLog(){return log;}
 	
 	public static void writeToLog(String s){log.append(s);}
+	
+	public static Grid currentGrid(){return grid;}
 }

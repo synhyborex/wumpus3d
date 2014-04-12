@@ -7,8 +7,8 @@ public class TestBFSAgent extends Agent {
 	
 	private int totalSearchCost; //total search cost
 
-	public TestBFSAgent(Grid g, Node start) {
-		super(g, start);
+	public TestBFSAgent() {
+		super();
 		totalSearchCost = 0;
 	}
 

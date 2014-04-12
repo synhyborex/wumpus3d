@@ -17,8 +17,8 @@ public class TestUniformAgent extends Agent
   private static final int SEARCH_COST = 1;
   private static final int TURN_COST = 1;
 
-  public TestUniformAgent(Grid g, Node start){
-    super(g,start);
+  public TestUniformAgent(){
+    super();
     goalX = 10;
     goalY = 10;
     pq = new PriorityQueue<GreedyNode>();

@@ -54,12 +54,14 @@ public abstract class Agent {
 	 */
 	protected Node startNode;
 	
-	public Agent(Grid g, Node start){
-		grid = g;
+	public Agent(){
+		//grid = g;
+		grid = ApplicationWindow.currentGrid();
 		fairy = null;
 		fringe = new Fringe();
-		startNode = start;
-		currentNode = start;
+		//startNode = start;
+		startNode = grid.getAgentLocation();
+		currentNode = startNode;
 		HEADING = EAST;
 		goalsSoFar = 0;
 		

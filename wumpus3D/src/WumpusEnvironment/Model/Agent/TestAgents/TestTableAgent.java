@@ -8,8 +8,8 @@ public class TestTableAgent extends Agent {
 	//create new tablet to direct Agent
     private int[][] directionTable = new int[5][5];
 
-	public TestTableAgent(Grid g, Node start) {
-		super(g, start);
+	public TestTableAgent() {
+		super();
 		//manually enter directions to travel
         directionTable[1][1] = EAST;
         directionTable[2][1] = EAST;

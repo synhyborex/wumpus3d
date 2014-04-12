@@ -8,8 +8,8 @@ public class TestDFSAgent extends Agent {
 
 	private int totalSearchCost; //total search cost
 	
-	public TestDFSAgent(Grid g, Node start) {
-		super(g, start);
+	public TestDFSAgent() {
+		super();
 		totalSearchCost = 0;
 	}
 

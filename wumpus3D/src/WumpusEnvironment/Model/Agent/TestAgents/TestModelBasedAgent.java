@@ -7,8 +7,8 @@ public class TestModelBasedAgent extends Agent {
 	
 	private boolean turnedLeft; //agent just turned left
 	
-	public TestModelBasedAgent(Grid g, Node start){
-		super(g,start);
+	public TestModelBasedAgent(){
+		super();
 		turnedLeft = false;
 	}
 	

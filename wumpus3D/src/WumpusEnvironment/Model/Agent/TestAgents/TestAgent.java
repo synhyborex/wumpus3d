@@ -6,8 +6,8 @@ import WumpusEnvironment.Model.Map.Node;
 
 public class TestAgent extends Agent {
 	
-	public TestAgent(Grid g, Node start){
-		super(g,start);
+	public TestAgent(){
+		super();
 	}
 	
 	public void nextStep(){
