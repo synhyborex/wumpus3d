@@ -1,9 +1,10 @@
 package WumpusEnvironment.Model.Agent;
 
+import WumpusEnvironment.resources.*;
+
 import java.io.*;
 import java.net.URL;
 import java.net.URLClassLoader;
-
 import javax.swing.*;
 
 public class AgentLoader {
@@ -27,18 +28,21 @@ public class AgentLoader {
         	File f = new File(filePath.substring(0, filePath.indexOf(parentDirectory)));
         	URL[] cp = {f.toURI().toURL()};
         	URLClassLoader urlcl = new URLClassLoader(cp);
+        	JarClassLoader jarLoader = new JarClassLoader(filePath);
 
             Class agentDefinition = null;
             if (parentDirectory.equals("Agents"))
             {
             	System.out.println(PACKAGE + agentClassName);
-            	agentDefinition = urlcl.loadClass(PACKAGE + agentClassName);
+            	agentDefinition = jarLoader.loadClass(agentClassName,true);
+            	//agentDefinition = urlcl.loadClass(PACKAGE + agentClassName);
                 //agentDefinition = Class.forName(PACKAGE + agentClassName);
             }
             else
             {
             	System.out.println(PACKAGE + parentDirectory + "." + agentClassName);
-            	agentDefinition = urlcl.loadClass(parentDirectory + "." + agentClassName);
+            	agentDefinition = jarLoader.loadClass(agentClassName,true);
+            	//agentDefinition = urlcl.loadClass(parentDirectory + "." + agentClassName);
             }
             object = agentDefinition.newInstance();
 

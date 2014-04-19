@@ -197,20 +197,20 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 							fairy = true;
 							break;
 						case 'X':
-							grid.setNode(j+1,i+1,Grid.WALL,true);
+							grid.setNodeType(j+1,i+1,Grid.WALL,true);
 							break;
 						case 'G':
-							grid.setNode(j+1,i+1,Grid.GOAL,true);
+							grid.setNodeType(j+1,i+1,Grid.GOAL,true);
 							grid.setGoalLocation(new Node(j+1,i+1));
 							break;
 						case 'W':
-							grid.setNode(j+1,i+1,Grid.WUMPUS,true);
+							grid.setNodeType(j+1,i+1,Grid.WUMPUS,true);
 							break;
 						case 'M':
-							grid.setNode(j+1,i+1,Grid.MINION,true);
+							grid.setNodeType(j+1,i+1,Grid.MINION,true);
 							break;
 						case 'P':
-							grid.setNode(j+1,i+1,Grid.PIT,true);
+							grid.setNodeType(j+1,i+1,Grid.PIT,true);
 							break;
 					}
 				}
@@ -228,11 +228,12 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 			if(fairy){
 				agent.setFairy(new Fairy(grid,grid.getAgentLocation()));
 			}
+			//print start of log
 			log.append(logSeparator +
 					" * Map start *\n" +
 					logSeparator);
 			generateLogEntry(agent,log);
-			while(!grid.isSolved()){
+			while(!grid.isSolved() && !agent.isDead()){
 				agent.step();
 				if(fairy){
 					if(agent.fairyFoundAllGoals()){
@@ -241,7 +242,14 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 				}
 				else generateLogEntry(agent,log);
 			}
-			log.append("* You found all the gold! *\n");
+			//see what status made the loop break
+			if(grid.isSolved()){
+				log.append("* You found all the gold! *\n");
+			}
+			else if(agent.isDead()){
+				log.append("* You died! Better luck next time. *\n");
+			}
+			else log.append("failure that should never occur!!!");
 			log.append("*** GAME OVER ***\n");
 		}
 	}
@@ -254,14 +262,14 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 	        agentChooser.setFileFilter(new FileFilter() {
 	        	 
 	            public String getDescription() {
-	                return "Java class files (*.class)";
+	                return "Java jar files (*.jar)";
 	            }
 	         
 	            public boolean accept(File f) {
 	                if (f.isDirectory()) {
 	                    return true;
 	                } else {
-	                    return f.getName().toLowerCase().endsWith(".class");
+	                    return f.getName().toLowerCase().endsWith(".jar");
 	                }
 	            }
 	        });

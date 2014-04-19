@@ -194,7 +194,7 @@ public class TestUniformAgent extends Agent
   }
 
   public void nextStep(){
-    int dirToTurn = getTurnDirection(getAgentLocation(),(Node)path.get(0));
+    int dirToTurn = getTurnDirection(getCurrentLocation(),(Node)path.get(0));
     if(dirToTurn >= 0){ //valid direction
       turnTo(dirToTurn);
       moveForward();
@@ -203,7 +203,7 @@ public class TestUniformAgent extends Agent
     else if(dirToTurn == -1) //same square
       path.remove(0);
 
-    if(getAgentLocation().hasGoal()){
+    if(getCurrentLocation().hasGoal()){
       log("\nGoal Reached!");
       //log("Total Search Cost: " + getSearchCost());
       log("Total Movement Cost: " + getMovementCost());

@@ -6,8 +6,11 @@ package WumpusEnvironment.Model.Map;
  *
  */
 public class Node implements Comparable<Node>{
+	//location variables
 	protected int x;
 	protected int y;
+	
+	//status variables
 	protected boolean hasGoal;
 	protected boolean isWall;
 	protected boolean hasWumpus;
@@ -16,6 +19,9 @@ public class Node implements Comparable<Node>{
 	protected boolean hasAgent;
 	protected boolean hasFairy;
 	protected boolean evaluated;
+	
+	//belief variables
+	protected int[] beliefs;
 	
 	/**
 	 * Creates a new empty Node
@@ -33,6 +39,9 @@ public class Node implements Comparable<Node>{
 		hasAgent = false;
 		hasFairy = false;
 		evaluated = false;
+		beliefs = new int[6];
+		for(int i = 0; i < beliefs.length; i++)
+			beliefs[i] = 6; //Agent.UNKNOWN
 	}
 	
 	public int compareTo(Node n) {
@@ -46,8 +55,8 @@ public class Node implements Comparable<Node>{
 	/* getter methods */
 	public int getX(){return x;}
 	public int getY(){return y;}
-	public void setX(int x){this.x = x;}
-	public void setY(int y){this.y = y;}
+	public int getBelief(int index){return beliefs[index];}
+	public void setBelief(int index, int value){beliefs[index] = value;}
 	public void setAsEvaluated(){this.evaluated = true;}
 	public boolean hasGoal(){return hasGoal;}
 	public boolean isWall(){return isWall;}
@@ -57,6 +66,7 @@ public class Node implements Comparable<Node>{
 	public boolean hasAgent(){return hasAgent;}
 	public boolean hasFairy(){return hasFairy;}
 	public boolean isEvaluated(){return evaluated;}
+	public String toString(){return "(" + x + "," + y + ")";}
 	public int getCost(){return 0;} //COULD POTENTIALLY CHANGE!!!!
 	
 }

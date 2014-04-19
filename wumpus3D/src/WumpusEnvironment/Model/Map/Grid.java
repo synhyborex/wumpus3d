@@ -119,17 +119,59 @@ public class Grid {
 		grid[n.getY()][n.getX()].setAsEvaluated();
 	}
 	
-	public int agentToClosestGoal(){
-		if(numGoals == 1) return distanceBetweenNodes(agentLocation,goalLocations[0]);
+	public int distanceToClosestGoal(Node node){
+		return distanceBetweenNodes(node,findClosestGoal(node));
+	}
+	
+	//returns -1 if you're directly on top of the goal and there are no others
+	public int directionOfClosestGoal(Node node){
+		Node goal = findClosestGoal(node);
+		int ns = node.getY() - goal.getY(); //negative means NORTH, positive means SOUTH
+		int ew = node.getX() - goal.getX(); //negative means WEST, positive means EAST
 		
-		int shortest = distanceBetweenNodes(agentLocation,goalLocations[0]);
-		for(int i = 1; i < goalLocations.length; i++){
-			int dist = distanceBetweenNodes(agentLocation,goalLocations[i]);
+		if(ns == 0 && ew == 0) return -1; //both are 0
+		//one of the two is 0
+		if(ns == 0){
+			if(ew < 0) return Agent.WEST;
+			if(ew > 0) return Agent.EAST;
+		}
+		if(ew == 0){
+			if(ns < 0) return Agent.NORTH;
+			if(ns > 0) return Agent.SOUTH;
+		}		
+		
+		//neither is 0
+		//we want to return the direction that is closer to the goal if, for example,
+		//the goal is both NORTH and WEST of the given Node
+		if(Math.abs(ns) < Math.abs(ew)){ //check abs of distance, since sign indicates direction
+			if(ns < 0) return Agent.NORTH;
+			if(ns > 0) return Agent.SOUTH;
+		}
+		else{ //ew is <= ns
+			if(ew < 0) return Agent.WEST;
+			if(ew > 0) return Agent.EAST;
+		}
+		
+		return -2; //if it ever gets here it means I missed a case
+	}
+	
+	//if this ever throws arrayindexoutofboundsexception then something is very wrong.
+	//the only time it will ever get there is if for some reason this method is called
+	//after all goals have been found...in which case it should be game over anyway
+	protected Node findClosestGoal(Node node){
+		if(numGoals == 1) return goalLocations[0];
+		int ret = -1;
+		int shortest = Integer.MAX_VALUE;
+		for(int i = 0; i < goalLocations.length; i++){
+			int dist = Integer.MAX_VALUE;
+			if(!goalLocations[i].isEvaluated())
+				dist = distanceBetweenNodes(node,goalLocations[i]);
 			if(dist < shortest){
 				shortest = dist;
+				ret = i;
 			}
 		}		
-		return shortest;
+		return goalLocations[ret];
 	}
 	
 	protected int distanceBetweenNodes(Node a, Node b){
@@ -176,7 +218,7 @@ public class Grid {
 	 * @param what which value to change
 	 * @param b what to change <code>what</code> to
 	 */
-	public void setNode(int y, int x, int what, boolean b){
+	public void setNodeType(int y, int x, int what, boolean b){
 		switch(what){
 			case GOAL:
 				grid[x][y].hasGoal = b;

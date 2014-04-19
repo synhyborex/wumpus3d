@@ -22,7 +22,7 @@ public class TestTableAgent extends Agent {
 	@Override
 	public void nextStep() {
 		// Get Percepts
-	    Node n = getAgentLocation();
+	    Node n = getCurrentLocation();
 	    int x = n.getX();
 	    int y = n.getY();
 

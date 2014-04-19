@@ -32,7 +32,7 @@ public class Fairy {
 		goalsSoFar = 0;
 		
 		//put Fairy on Grid
-		grid.setNode(currentNode.getX(),currentNode.getY(),Grid.FAIRY,true);
+		grid.setNodeType(currentNode.getX(),currentNode.getY(),Grid.FAIRY,true);
 	}
 	
 	/**
@@ -68,9 +68,9 @@ public class Fairy {
 	}
 	
 	public int moveFairyLocation(Node loc){
-		grid.setNode(currentNode.getX(),currentNode.getY(),Grid.FAIRY,false); //Fairy has moved from this spot
+		grid.setNodeType(currentNode.getX(),currentNode.getY(),Grid.FAIRY,false); //Fairy has moved from this spot
 		currentNode = loc;
-		grid.setNode(currentNode.getX(),currentNode.getY(),Grid.FAIRY,true); //Fairy is now here
+		grid.setNodeType(currentNode.getX(),currentNode.getY(),Grid.FAIRY,true); //Fairy is now here
 		grid.addToEvaluated(loc);
 		
 		return newNodeStatus();
