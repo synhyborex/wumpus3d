@@ -1,0 +1,89 @@
+package WumpusEnvironment.Model.Map;
+
+import WumpusEnvironment.resources.*;
+
+import java.io.*;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.Scanner;
+
+import javax.swing.*;
+
+public class MapLoader {
+
+	public static final String PACKAGE = "Maps.";
+    public static JFrame THIS;
+    protected static boolean fairy = false;
+    
+    public static boolean searchMap(){
+    	return fairy;
+    }
+	
+	public static Grid loadMapFromFile(File file){
+		//grid initialization variables
+		//if map has only one square, there was a problem with the map file
+		int gridWidth = 1, gridHeight = 1, gridNumGoals = 0;
+		Grid grid = new Grid(gridWidth,gridHeight,gridNumGoals);
+		
+		//Agent initialization variables
+		//if Agent spawns at (0,0), there was a problem with the map file
+		int agentStartX = 0, agentStartY = 0;
+		//Agent a = new TestAgent();
+		try {
+			Scanner sc = new Scanner(file);
+			/*
+			 * THIS HAS NO ERROR CHECKING CODE. ASSUMES ALL MAP FILES FOLLOW
+			 * THIS FORMAT!!! PROBABLY A BAD IDEA BUT SHOULD CHECK WITH KURFESS.
+			 */
+			gridWidth = sc.nextInt(); //first number is width
+			gridHeight = sc.nextInt(); //second number is height
+			gridNumGoals = sc.nextInt(); //third number is number of goals on the map
+			sc.nextLine(); //throw away rest of line
+			
+			//create the grid so we can modify Nodes
+			grid = new Grid(gridWidth+2,gridHeight+2,gridNumGoals);
+			for(int i = 0; i < gridHeight; i++){
+				String nextRow = sc.nextLine();
+				for(int j = 0; j < gridWidth; j++){
+					switch(nextRow.charAt(j)){
+						case 'S':
+							agentStartX = j+1;
+							agentStartY = i+1;
+							break;
+						case 'F':
+							agentStartX = j+1;
+							agentStartY = i+1;
+							fairy = true;
+							break;
+						case 'X':
+							grid.setNodeType(j+1,i+1,Grid.WALL,true);
+							break;
+						case 'G':
+							grid.setNodeType(j+1,i+1,Grid.GOAL,true);
+							grid.setGoalLocation(new Node(j+1,i+1));
+							break;
+						case 'W':
+							grid.setNodeType(j+1,i+1,Grid.WUMPUS,true);
+							break;
+						case 'M':
+							grid.setNodeType(j+1,i+1,Grid.MINION,true);
+							break;
+						case 'P':
+							grid.setNodeType(j+1,i+1,Grid.PIT,true);
+							break;
+					}
+				}
+			}
+			sc.close();
+			//put Agent on Grid
+			Node pass = new Node(agentStartX,agentStartY);
+			grid.addToEvaluated(pass);
+			grid.setNodeType(pass.getX(),pass.getY(),Grid.AGENT,true);
+			grid.setAgentLocation(pass);
+		} catch (FileNotFoundException e) {
+			JOptionPane.showMessageDialog(THIS,"Map file was not found!");
+		}
+		return grid;
+	}
+
+}

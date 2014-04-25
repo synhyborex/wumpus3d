@@ -1,5 +1,4 @@
 package WumpusEnvironment.View.MainWindow;
-import WumpusEnvironment.Model.Agent.TestAgents.*;
 import WumpusEnvironment.Model.Agent.*;
 import WumpusEnvironment.Model.Map.*;
 
@@ -95,7 +94,12 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 	//file menu
 	JMenu fileMenu; 
 	JMenuItem newSessionOption;
-	JFileChooser agentChooser;
+	static JFileChooser agentChooser;
+	
+	//map menu
+	JMenu mapMenu;
+	JMenuItem chooseMapOption;
+	static JFileChooser mapChooser;
 	
 	//main view
 	JSplitPane mainView; //the main view for the log and map
@@ -104,16 +108,15 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 	
 	public ApplicationWindow(){
 		super("Wumpus Environment 3D");
+		grid = new Grid(0,0,0);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setMinimumSize(new Dimension(g_width, g_height));
 		
 		//create the menu bar for the frame
-		//file menu
+		//first menu
 		menuBar = new JMenuBar();
 		fileMenu = new JMenu("File");
-		newSessionOption = new JMenuItem("New Wumpus Environment Session");
-		agentChooser = new JFileChooser("."); //the file chooser for the Agent
-		agentChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+		newSessionOption = new JMenuItem("New Wumpus Environment Session...");
 		newSessionOption.addActionListener(this);
 		fileMenu.add(newSessionOption);
 		
@@ -158,99 +161,13 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 		
 		//size and display the frame
 		frame.pack();
-		frame.setVisible(true);
-		
-		//grid initialization variables
-		//if map has only one square, there was a problem with the map file
-		int gridWidth = 1, gridHeight = 1, gridNumGoals = 0;
-		grid = new Grid(gridWidth,gridHeight,gridNumGoals);
-		
-		//Agent initialization variables
-		//if Agent spawns at (0,0), there was a problem with the map file
-		int agentStartX = 0, agentStartY = 0;
-		boolean fairy = false;
-		//Agent a = new TestAgent();
-		try {
-			Scanner sc = new Scanner(new File("bfs-map.txt"));
-			/*
-			 * THIS HAS NO ERROR CHECKING CODE. ASSUMES ALL MAP FILES FOLLOW
-			 * THIS FORMAT!!! PROBABLY A BAD IDEA BUT SHOULD CHECK WITH KURFESS.
-			 */
-			gridWidth = sc.nextInt(); //first number is width
-			gridHeight = sc.nextInt(); //second number is height
-			gridNumGoals = sc.nextInt(); //third number is number of goals on the map
-			sc.nextLine(); //throw away rest of line
-			
-			//create the grid so we can modify Nodes
-			grid = new Grid(gridWidth+2,gridHeight+2,gridNumGoals);
-			for(int i = 0; i < gridHeight; i++){
-				String nextRow = sc.nextLine();
-				for(int j = 0; j < gridWidth; j++){
-					switch(nextRow.charAt(j)){
-						case 'S':
-							agentStartX = j+1;
-							agentStartY = i+1;
-							break;
-						case 'F':
-							agentStartX = j+1;
-							agentStartY = i+1;
-							fairy = true;
-							break;
-						case 'X':
-							grid.setNodeType(j+1,i+1,Grid.WALL,true);
-							break;
-						case 'G':
-							grid.setNodeType(j+1,i+1,Grid.GOAL,true);
-							grid.setGoalLocation(new Node(j+1,i+1));
-							break;
-						case 'W':
-							grid.setNodeType(j+1,i+1,Grid.WUMPUS,true);
-							break;
-						case 'M':
-							grid.setNodeType(j+1,i+1,Grid.MINION,true);
-							break;
-						case 'P':
-							grid.setNodeType(j+1,i+1,Grid.PIT,true);
-							break;
-					}
-				}
-			}
-			sc.close();
-			grid.setAgentLocation(new Node(agentStartX,agentStartY));
-		} catch (FileNotFoundException e) {
-			System.out.println("File not found!");
-			System.exit(1);
-		}
+		frame.setVisible(true);		
 		
 		//create Agent now that Grid is fully instantiated
-		//agent = AgentLoader.loadAgentFromFile(file);
+		//agent = AgentLoader.loadAgentFromFile(agentChooser.getSelectedFile());
 		if(agent != null){
-			if(fairy){
-				agent.setFairy(new Fairy(grid,grid.getAgentLocation()));
-			}
-			//print start of log
-			log.append(logSeparator +
-					" * Map start *\n" +
-					logSeparator);
-			generateLogEntry(agent,log);
-			while(!grid.isSolved() && !agent.isDead()){
-				agent.step();
-				if(fairy){
-					if(agent.fairyFoundAllGoals()){
-						generateLogEntry(agent,log);
-					}
-				}
-				else generateLogEntry(agent,log);
-			}
-			//see what status made the loop break
-			if(grid.isSolved()){
-				log.append("* You found all the gold! *\n");
-			}
-			else if(agent.isDead()){
-				log.append("* You died! Better luck next time. *\n");
-			}
-			else log.append("failure that should never occur!!!");
-			log.append("*** GAME OVER ***\n");
+
+			
 		}
 	}
 	
@@ -259,26 +176,104 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 		
 		//option for choosing agent
 		if(source.equals(newSessionOption)){
+			agentChooser = new JFileChooser("./Agents"); //the file chooser for the Agent
+			agentChooser.setDialogTitle("Select an Agent");
+			agentChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 	        agentChooser.setFileFilter(new FileFilter() {
 	        	 
 	            public String getDescription() {
-	                return "Java jar files (*.jar)";
+	                return "Agent class files (*.class)";
 	            }
 	         
 	            public boolean accept(File f) {
 	                if (f.isDirectory()) {
 	                    return true;
 	                } else {
-	                    return f.getName().toLowerCase().endsWith(".jar");
+	                    return f.getName().toLowerCase().endsWith(".class");
 	                }
 	            }
 	        });
 	        int result = agentChooser.showOpenDialog(this);
 	        if(result == JFileChooser.APPROVE_OPTION){
 	        	agent = AgentLoader.loadAgentFromFile(agentChooser.getSelectedFile());
+	        	addOtherMenus();
+	        }
+		}
+		else if(source.equals(chooseMapOption)){
+			mapChooser = new JFileChooser("./Maps"); //the file chooser for the map
+			mapChooser.setDialogTitle("Select a Map");
+			mapChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+	        mapChooser.setFileFilter(new FileFilter() {
+	        	 
+	            public String getDescription() {
+	                return "Map files (*.dat)";
+	            }
+	         
+	            public boolean accept(File f) {
+	                if (f.isDirectory()) {
+	                    return true;
+	                } else {
+	                    return f.getName().toLowerCase().endsWith(".dat");
+	                }
+	            }
+	        });
+	        int result = mapChooser.showOpenDialog(this);
+	        if(result == JFileChooser.APPROVE_OPTION){
+	        	grid = MapLoader.loadMapFromFile(mapChooser.getSelectedFile());
+	        	startMap(MapLoader.searchMap());
 	        }
 		}
     }
+	
+	public void addOtherMenus(){
+		//add the map menu
+		//menuBar.removeAll();
+		mapMenu = new JMenu("Map");
+		chooseMapOption = new JMenuItem("Open Map...");
+		chooseMapOption.addActionListener(this);
+		mapMenu.add(chooseMapOption);
+		
+		//add new menus to frame
+		menuBar.add(mapMenu); //add map menu to menu bar
+		menuBar.validate();
+	}
+	
+	public void startMap(boolean fairy){
+		System.out.println("starting map now\n");
+		agent.setStartLocation(grid.getAgentLocation());
+		System.out.println("setting fairy status\n");
+		if(fairy){
+			agent.setFairy(new Fairy(grid,grid.getAgentLocation()));
+		}
+		System.out.println("printing log start\n");
+		//print start of log
+		log.append(logSeparator +
+				" * Map start *\n" +
+				logSeparator);
+		generateLogEntry(agent,log);
+		runAgent(fairy);
+	}
+	
+	public void runAgent(boolean fairy){
+		while(!grid.isSolved() && !agent.isDead()){
+			agent.step();
+			if(fairy){
+				if(agent.fairyFoundAllGoals()){
+					generateLogEntry(agent,log);
+				}
+			}
+			else generateLogEntry(agent,log);
+		}
+		//see what status made the loop break
+		if(grid.isSolved()){
+			log.append("* You found all the gold! *\n");
+		}
+		else if(agent.isDead()){
+			log.append("* You died! Better luck next time. *\n");
+		}
+		else log.append("failure that should never occur!!!");
+		log.append("*** GAME OVER ***\n");
+	}
 
 	//@Override
 	public void display(GLAutoDrawable drawable) {

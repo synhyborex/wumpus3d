@@ -141,13 +141,13 @@ public class Grid {
 		}		
 		
 		//neither is 0
-		//we want to return the direction that is closer to the goal if, for example,
+		//we want to return the direction that is further from the goal if, for example,
 		//the goal is both NORTH and WEST of the given Node
-		if(Math.abs(ns) < Math.abs(ew)){ //check abs of distance, since sign indicates direction
+		if(Math.abs(ns) > Math.abs(ew)){ //check abs of distance, since sign indicates direction
 			if(ns < 0) return Agent.NORTH;
 			if(ns > 0) return Agent.SOUTH;
 		}
-		else{ //ew is <= ns
+		else{ //ew is >= ns
 			if(ew < 0) return Agent.WEST;
 			if(ew > 0) return Agent.EAST;
 		}

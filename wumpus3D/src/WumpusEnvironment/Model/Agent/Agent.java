@@ -101,16 +101,16 @@ public abstract class Agent {
 		fairy = null;
 		fringe = new Fringe();
 		//startNode = start;
-		startNode = grid.getAgentLocation();
+		startNode = new Node(0,0);
 		currentNode = startNode;
 		HEADING = EAST;
 		goalsSoFar = 0;
 		lifePoints = 100;
 		
 		//put Agent on Grid
-		grid.addToEvaluated(currentNode);
+		/*grid.addToEvaluated(currentNode);
 		grid.setNodeType(currentNode.getX(),currentNode.getY(),Grid.AGENT,true);
-		grid.setAgentLocation(currentNode);
+		grid.setAgentLocation(currentNode);*/
 	}
 	
 	public void reset(){
@@ -120,6 +120,11 @@ public abstract class Agent {
 		HEADING = EAST;
 		goalsSoFar = 0;
 		lifePoints = 100;
+	}
+	
+	public void setStartLocation(Node n){
+		startNode = grid.getNode(n.getX(),n.getY());
+		currentNode = startNode;
 	}
 	
 	/**
