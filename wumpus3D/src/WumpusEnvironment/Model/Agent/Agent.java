@@ -50,32 +50,32 @@ public abstract class Agent {
 	/**
 	 * The grid on which the <code>Agent</code> is operating
 	 */
-	protected static Grid grid;
+	private static Grid grid;
 	
 	/**
 	 * The Fairy that will assist the Agent in doing off-line searches
 	 */
-	protected Fairy fairy;
+	private Fairy fairy;
 	
 	/**
 	 * The fringe that may be used for off-line searches
 	 */
-	protected Fringe fringe;
+	private Fringe fringe;
 	
 	/**
 	 * How many goals have been accomplished so far
 	 */
-	protected int goalsSoFar;
+	private int goalsSoFar;
 	
 	/**
 	 * The Node the <code>Agent</code> is currently occupying
 	 */
-	protected Node currentNode;
+	private Node currentNode;
 	
 	/**
 	 * The Node at which the <code>Agent</code> starts on the map. Used for reset().
 	 */
-	protected Node startNode;
+	private Node startNode;
 	
 	/*
 	 * variables for various points
@@ -83,17 +83,17 @@ public abstract class Agent {
 	/**
 	 * How much life the <code>Agent</code> has left
 	 */
-	protected int lifePoints;
+	private int lifePoints;
 	
 	/**
 	 * What it has cost the <code>Agent</code> so far to move around the world
 	 */
-	protected int movementCost;
+	private int movementCost;
 	
 	/**
 	 * What it has cost the <code>Fairy</code> so far to move around the world
 	 */
-	protected int searchCost;
+	private int searchCost;
 	
 	public Agent(){
 		//grid = g;
@@ -158,7 +158,7 @@ public abstract class Agent {
 	/**
 	 * Defines the system behavior when all objectives have been completed
 	 */
-	protected void gameOverSuccess(){
+	private void gameOverSuccess(){
 		grid.setSolved(true);
 	}
 	
@@ -195,10 +195,12 @@ public abstract class Agent {
 		while(!grid.getNode(arrowPos.getX()+addToX,arrowPos.getY()+addToY).isWall()){
 			arrowPos = grid.getNode(arrowPos.getX()+addToX,arrowPos.getY()+addToY);
 			if(arrowPos.hasMinion()){
+				grid.setNodeType(arrowPos.getX(),arrowPos.getY(),Grid.MINION,false); //there is no longer a minion here
 				ApplicationWindow.writeToLog("You hear a shriek of pain...\n");
 				return HIT_MINION;
 			}
 			else if(arrowPos.hasWumpus()){
+				grid.setNodeType(arrowPos.getX(),arrowPos.getY(),Grid.WUMPUS,false); //there is no longer a Wumpus here
 				ApplicationWindow.writeToLog("You hear a deafening roar...\n");
 				return HIT_WUMPUS;
 			}
@@ -248,14 +250,10 @@ public abstract class Agent {
 		
 		//successfully moved forward
 		grid.setNodeType(currentNode.getX(),currentNode.getY(),Grid.AGENT,false); //Agent has moved from this spot
-		//currentNode.setX(currentNode.getX()+addToX);
-		//currentNode.setY(currentNode.getY()+addToY);
 		currentNode = grid.getNode(currentNode.getX()+addToX,currentNode.getY()+addToY);
 		grid.setNodeType(currentNode.getX(),currentNode.getY(),Grid.AGENT,true); //Agent is now here
 		grid.setAgentLocation(currentNode); //update current node the Agent is on
-		grid.addToEvaluated(currentNode); //this Node has now been evaluated
-
-		
+		grid.addToEvaluated(currentNode); //this Node has now been evaluated		
 		
 		//also need to adjust score for movement and search
 		return currNodeStatus();
@@ -362,7 +360,7 @@ public abstract class Agent {
 	 * Determines the value of what is occupying the <code>Node</code> other than the <code>Agent</code>
 	 * @return the value of what is occupying the <code>Node</code> other than the <code>Agent</code>
 	 */
-	protected int currNodeStatus(){
+	private int currNodeStatus(){
 		int value = SAFE;
 		if(currentNode.hasGoal()) value =  GOAL_FOUND;
 		else if(currentNode.hasWumpus()) value =  DIED_TO_WUMPUS;
@@ -376,7 +374,7 @@ public abstract class Agent {
 	 * Determines the penalty to be incurred by a certain move
 	 * @param value the value of what is occupying the <code>Node</code> other than the <code>Agent</code>
 	 */
-	protected void determinePenalty(int value){
+	private void determinePenalty(int value){
 		switch(value){
 			case SAFE:
 				//do nothing presumably
@@ -653,7 +651,7 @@ public abstract class Agent {
 	 * @param direction the direction of the adjacent <code>Node</code>
 	 * @return the <code>Node</code> adjacent to the given <code>Node</code> in the direction specified
 	 */
-	protected Node getAdjacentNode(Node node, int direction){
+	private Node getAdjacentNode(Node node, int direction){
 		Node ret;
 		switch(direction){
 			case NORTH:
@@ -711,7 +709,7 @@ public abstract class Agent {
 	 * NEEDS TO BE IMPLEMENTED.
 	 * @return
 	 */
-	public int getPerformanceValue(){
+	private int getPerformanceValue(){
 		return 0;
 	}
 	
@@ -772,10 +770,10 @@ public abstract class Agent {
 	 * @return the string representation of what occurred after a movement
 	 */
 	public String movementStatusToString(){
-		String ret = "failure that should never occur!!!!";
+		String ret = "";
 		switch(currNodeStatus()){
 			case SAFE:
-				
+				ret = safeString();
 				break;
 			case HIT_WALL:
 				ret = "Bonk! You walked into a wall!\n";
@@ -790,14 +788,15 @@ public abstract class Agent {
 				ret = "You've fallen into a pit! Good luck getting out before you turn to dust.\n";
 				break;
 			case GOAL_FOUND:
-				ret = "You found gold!\n";
+				if(!grid.isSolved())
+					ret = "You found gold!\n";
 				break;
 		}
 		return ret;
 	}
 	
-	protected String safeString(){
-		String ret = "You feel safe here...\n";
+	private String safeString(){
+		String ret;
 		boolean wumpus = nearWumpus(), pit = nearPit(), minion = nearMinion();
 		if(wumpus && pit && minion)
 			ret = "You smell something horrible nearby, feel a breeze, and hear Wumpus minions cackling nearby...\n";
@@ -813,6 +812,9 @@ public abstract class Agent {
 			ret = "You feel a breeze...\n";
 		else if(minion)
 			ret = "You hear Wumpus minions cackling nearby...\n";
+		else ret = "You feel safe here...\n";
+		if(nearGold())
+			ret += "You see something glittering nearby...\n";
 		return ret;
 	}
 	

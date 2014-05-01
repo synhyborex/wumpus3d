@@ -1,7 +1,5 @@
 package WumpusEnvironment.Model.Map;
 
-import WumpusEnvironment.resources.*;
-
 import java.io.*;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -15,7 +13,7 @@ public class MapLoader {
     public static JFrame THIS;
     protected static boolean fairy = false;
     
-    public static boolean searchMap(){
+    public static boolean isSearchMap(){
     	return fairy;
     }
 	
