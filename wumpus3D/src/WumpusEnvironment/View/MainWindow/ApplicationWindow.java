@@ -20,7 +20,7 @@ import java.awt.event.*;
 import java.io.*;
 import java.nio.FloatBuffer; 
 import java.nio.IntBuffer;
-import java.util.Scanner;
+import java.util.*;
 
 import javax.media.opengl.GLAutoDrawable; 
 import javax.media.opengl.GLEventListener; 
@@ -35,7 +35,6 @@ import com.hackoeur.jglm.support.*;
 public class ApplicationWindow  extends JFrame implements ActionListener{// implements GLEventListener{
 	
 	protected static final String logSeparator = "---------------\n";
-	protected static JTextArea log; //we only ever want one log
 	protected final static int MIN_DELAY = 0;
 	protected final static int MAX_DELAY = 1000;
 	protected final static int DEFAULT_DELAY = 100;	
@@ -89,7 +88,9 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 	//GLenum j;
 	
 	protected static Grid grid;
+	protected Grid startGrid;
 	protected static Agent agent;
+	protected Agent startAgent;
 	//protected final GLresources gr;
 	
 	//the main panel
@@ -114,15 +115,22 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 	JButton stopButton;
 	JButton stepButton;
 	JButton autoStepButton;
+	JButton resetButton;
+	boolean autoRun; //whether or not we're doing autostep
 	
 	//main view
 	JSplitPane mainView; //the main view for the log and map
-	JScrollPane logScrollPane; //the log pane
+	//the log pane
+	JPanel logPane; //the pane that will hold both the log and the save button
+	JScrollPane logScrollPane; //the scroll pane that will hold the log
+	static JTextArea log; //the actual log
+	JButton saveLog; //the button to save the log
+	//the map pane
 	JPanel mapPane; //the map pane
 	
 	public ApplicationWindow(){
 		super("Wumpus Environment 3D");
-		grid = new Grid(0,0,0);
+		grid = Grid.getInstance();
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setMinimumSize(new Dimension(g_width, g_height));
 		
@@ -224,17 +232,34 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 	        int result = mapChooser.showOpenDialog(this);
 	        if(result == JFileChooser.APPROVE_OPTION){
 	        	grid = MapLoader.loadMapFromFile(mapChooser.getSelectedFile());
+	        	grid.setCleanInitialGrid();
 	        	showMap(MapLoader.isSearchMap());
 	        }
 		}
 		else if(source.equals(stopButton)){
-			
+			stopButton.setEnabled(false);
+			enableButtons(new JButton[]{stepButton,autoStepButton});
+			autoRun = false;
 		}
 		else if(source.equals(stepButton)){
-			runAgent(MapLoader.isSearchMap());
+			runAgentStep(MapLoader.isSearchMap());
 		}
 		else if(source.equals(autoStepButton)){
-			
+			stopButton.setEnabled(true);
+			disableButtons(new JButton[]{stepButton,autoStepButton});
+			autoRun = true;
+			while(autoRun)
+				runAgentStep(MapLoader.isSearchMap());
+		}
+		else if(source.equals(resetButton)){
+			autoRun = false;
+			agent.secretReset();
+			grid = grid.getStartGrid();
+			agent = startAgent;
+			grid = startGrid;
+			stopButton.setEnabled(false);
+			enableButtons(new JButton[]{stepButton,autoStepButton});
+			generateLogEntry(agent,log);
 		}
     }
 	
@@ -253,6 +278,7 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 	}
 	
 	protected void showMainWindowContents(){
+		mainWindow.removeAll();
 		//create slider and movement buttons
 		sliderAndButtons = new JPanel();
 		sliderLabel = new JLabel("Delay (ms)");
@@ -265,32 +291,44 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 		Dimension d = delayInterval.getPreferredSize();
 		delayInterval.setPreferredSize(new Dimension(d.width+125,d.height));
 		stopButton = new JButton("STOP");
-		stopButton.setEnabled(false);
 		stepButton = new JButton("STEP");
-		stepButton.setEnabled(false);
 		autoStepButton = new JButton("AUTO STEP");
-		autoStepButton.setEnabled(false);
+		autoRun = false;
+		resetButton = new JButton("RESET");
+		disableButtons(new JButton[]{stopButton,stepButton,autoStepButton,resetButton});
+		stopButton.addActionListener(this); //so we don't forget to do it later
+		stepButton.addActionListener(this);
+		autoStepButton.addActionListener(this);
+		resetButton.addActionListener(this);
 		sliderAndButtons.add(sliderLabel);
 		sliderAndButtons.add(delayInterval);
 		sliderAndButtons.add(stopButton);
 		sliderAndButtons.add(stepButton);
 		sliderAndButtons.add(autoStepButton);
+		sliderAndButtons.add(resetButton);
 		mainWindow.add(sliderAndButtons,"North");
 		
 		//it will have a map and a log
 		//create log panel
+		logPane = new JPanel();
+		logPane.setLayout(new BorderLayout());
 		log = new JTextArea();
 		log.setEditable(false);
 		log.setFont(new Font("Consolas",Font.PLAIN, 12));
 		logScrollPane = new JScrollPane(log);
 		logScrollPane.setWheelScrollingEnabled(true);
 		logScrollPane.setMaximumSize(new Dimension(100, 400));
+		saveLog = new JButton("Save log...");
+		saveLog.addActionListener(this);
+		logPane.add(logScrollPane,"Center");
+		
+		
 		//create panel for map display
 		mapPane = new JPanel();
 		
 		//create the split pane that will display the map and the log
 		mainView = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-				mapPane,logScrollPane);
+				mapPane,logPane);
 		mainView.setDividerLocation(g_width-275); //log is smaller size than map
 		mainView.setResizeWeight(1.0); //make sure only map gets resized when frame gets resized
 		mainWindow.add(mainView,"Center");
@@ -298,41 +336,26 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 	}
 	
 	protected void showMap(boolean fairy){
-		System.out.println("starting map now\n");
+		//agent.secretReset();
+		agent = startAgent;
+		grid = startGrid;
 		agent.setStartLocation(grid.getAgentLocation());
-		System.out.println("setting fairy status\n");
 		if(fairy){
 			agent.setFairy(new Fairy(grid,grid.getAgentLocation()));
 		}
-		System.out.println("printing log start\n");
 		//print start of log
 		log.setText(null); //clear any text that was there before
 		log.append(logSeparator +
 				" * Map start *\n" +
 				logSeparator);
-		System.out.println("generating first entry\n");
 		generateLogEntry(agent,log);
 		
 		//enable movement buttons
-		stepButton.setEnabled(true);
-		stepButton.addActionListener(this);
-		autoStepButton.setEnabled(true);
-		autoStepButton.addActionListener(this);
-		
-		System.out.println("running agent\n");
-		runAgent(fairy);
-		runAgent(fairy);
-		runAgent(fairy);
-		runAgent(fairy);
-		runAgent(fairy);
-		runAgent(fairy);
-		/*runAgent(fairy);
-		runAgent(fairy);*/
+		enableButtons(new JButton[]{stepButton,autoStepButton,resetButton});
 	}
 	
-	protected void runAgent(boolean fairy){
-		log.append("doing next step now\n");
-		if(!grid.isSolved() && !agent.isDead()){
+	protected void runAgentStep(boolean fairy){
+		if(!agent.isDead() && !grid.isSolved()){
 			agent.step();
 			if(fairy){
 				if(agent.fairyFoundAllGoals()){
@@ -341,15 +364,28 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 			}
 			else generateLogEntry(agent,log);
 		}
+		if(agent.isDead()){
+			log.append("* You died! Better luck next time. *\n");
+			log.append("*** GAME OVER ***\n");
+			disableButtons(new JButton[]{stopButton,stepButton,autoStepButton});
+			autoRun = false;
+		}
 		else if(grid.isSolved()){
 			log.append("* You found all the gold! *\n");
 			log.append("*** GAME OVER ***\n");
+			disableButtons(new JButton[]{stopButton,stepButton,autoStepButton});
+			autoRun = false;
 		}
-		else if(agent.isDead()){
-			log.append("* You died! Better luck next time. *\n");
-			log.append("*** GAME OVER ***\n");
-		}
-		//else log.append("failure that should never occur!!!");
+	}
+	
+	protected void disableButtons(JButton[] list){
+		for(JButton j: list)
+			j.setEnabled(false);
+	}
+	
+	protected void enableButtons(JButton[] list){
+		for(JButton j: list)
+			j.setEnabled(true);
 	}
 
 	//@Override

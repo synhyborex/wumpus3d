@@ -22,11 +22,39 @@ public class Grid {
 	protected int numGoals; //the number of goal Nodes on the map
 	protected boolean solved; //whether or not the map has been solved
 	protected static Node[][] grid; //the map we're operating on
+	protected static Node[][] startGrid; //the initial contents of the map
 	protected static Node[] goalLocations; //the locations of the goals on the map
 	protected static Node agentLocation; //the location of the Agent on the map
 	
+	//singleton
+	private static Grid instance = new Grid();
 	
-	public Grid(int width, int height, int numGoals){
+	private Grid(){
+		width = 1;
+		height = 1;
+		numGoals = 0;
+	}
+	
+	private Grid(Node[][] grid){
+		this.grid = grid;
+	}
+	
+	public static Grid getInstance(){return instance;}
+	
+	public void setCleanInitialGrid(){
+		startGrid = new Node[width][height];
+		for(int i = 0; i < height; i++){
+			for(int j = 0; j < width; j++){
+				startGrid[i][j] = new Node(grid[i][j]);
+			}
+		}
+	}	
+	
+	public Grid getStartGrid(){
+		return new Grid(startGrid);
+	}
+	
+	/*public Grid(int width, int height, int numGoals){
 		this.width = width;
 		this.height = height;
 		this.numGoals = numGoals;
@@ -36,9 +64,24 @@ public class Grid {
 		grid = new Node[height][width];
 		goalLocations = new Node[numGoals];
 		gridInit();
-	}
+	}*/
 	
-	protected void gridInit(){
+	/**
+	 * The alternate "constructor" to allow singleton
+	 * @param width width of the grid
+	 * @param height height of the grid
+	 * @param numGoals the number of goals on the grid
+	 */
+	public void gridInit(int width, int height, int numGoals){
+		this.width = width;
+		this.height = height;
+		this.numGoals = numGoals;
+		setSolved(false);
+		
+		//initialize grid
+		grid = new Node[height][width];
+		goalLocations = new Node[numGoals];
+		
 		//make sure each index of array is a Node
 		for(int i = 0; i < height; i++){
 			for(int j = 0; j < width; j++){

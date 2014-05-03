@@ -21,7 +21,8 @@ public class MapLoader {
 		//grid initialization variables
 		//if map has only one square, there was a problem with the map file
 		int gridWidth = 1, gridHeight = 1, gridNumGoals = 0;
-		Grid grid = new Grid(gridWidth,gridHeight,gridNumGoals);
+		Grid grid = Grid.getInstance();
+		grid.gridInit(gridWidth,gridHeight,gridNumGoals);
 		
 		//Agent initialization variables
 		//if Agent spawns at (0,0), there was a problem with the map file
@@ -39,7 +40,8 @@ public class MapLoader {
 			sc.nextLine(); //throw away rest of line
 			
 			//create the grid so we can modify Nodes
-			grid = new Grid(gridWidth+2,gridHeight+2,gridNumGoals);
+			//grid = Grid.getInstance();
+			grid.gridInit(gridWidth+2,gridHeight+2,gridNumGoals);
 			for(int i = 0; i < gridHeight; i++){
 				String nextRow = sc.nextLine();
 				for(int j = 0; j < gridWidth; j++){

@@ -24,8 +24,9 @@ public abstract class Agent {
 	public static final int HIT_WALL = 2;
 	public static final int DIED_TO_WUMPUS = 3;
 	public static final int DAMAGED_BY_MINION = 4;
-	public static final int DIED_TO_PIT = 5;
-	public static final int GOAL_FOUND = 6;
+	public static final int DIED_TO_MINION = 5;
+	public static final int DIED_TO_PIT = 6;
+	public static final int GOAL_FOUND = 7;
 	
 	//agent arrow status variables
 	public static final int HIT_MINION = 0;
@@ -73,6 +74,11 @@ public abstract class Agent {
 	private Node currentNode;
 	
 	/**
+	 * The status of the <code>Agent</code> in its currently occupied <code>Node</code>
+	 */
+	private int currentNodeStatus;
+	
+	/**
 	 * The Node at which the <code>Agent</code> starts on the map. Used for reset().
 	 */
 	private Node startNode;
@@ -97,12 +103,13 @@ public abstract class Agent {
 	
 	public Agent(){
 		//grid = g;
-		grid = ApplicationWindow.currentGrid();
+		grid = Grid.getInstance();
 		fairy = null;
 		fringe = new Fringe();
 		//startNode = start;
 		startNode = new Node(0,0);
 		currentNode = startNode;
+		currentNodeStatus = SAFE;
 		HEADING = EAST;
 		goalsSoFar = 0;
 		lifePoints = 100;
@@ -113,13 +120,18 @@ public abstract class Agent {
 		grid.setAgentLocation(currentNode);*/
 	}
 	
-	public void reset(){
-		//fairy = new Fairy(grid,startNode);
+	public void secretReset(){
+		if(MapLoader.isSearchMap())
+			fairy = new Fairy(grid,startNode);
+		else fairy = null;
 		fringe = new Fringe();
-		currentNode = startNode;
+		currentNodeStatus = SAFE;
 		HEADING = EAST;
 		goalsSoFar = 0;
 		lifePoints = 100;
+		/*grid.setNodeType(currentNode.getX(),currentNode.getY(),Grid.AGENT,false); //Agent has moved from this spot
+		currentNode = startNode;
+		grid.setNodeType(currentNode.getX(),currentNode.getY(),Grid.AGENT,true); //Agent is now here*/
 	}
 	
 	public void setStartLocation(Node n){
@@ -147,6 +159,11 @@ public abstract class Agent {
 	 * The next step the <code>Agent</code> will take. This method will be written by the student.
 	 */
 	public abstract void nextStep();
+	
+	/**
+	 * The reset method that students will implement in case they need any variables reset.
+	 */
+	public void reset(){}
 	
 	/**
 	 * The next step the <code>Fairy</code> will take. This method will be written by the student.
@@ -256,7 +273,8 @@ public abstract class Agent {
 		grid.addToEvaluated(currentNode); //this Node has now been evaluated		
 		
 		//also need to adjust score for movement and search
-		return currNodeStatus();
+		currentNodeStatus = currNodeStatus(); //update the status in the Agent's current Node
+		return currentNodeStatus;
 	}
 	
 	/**
@@ -362,9 +380,9 @@ public abstract class Agent {
 	 */
 	private int currNodeStatus(){
 		int value = SAFE;
-		if(currentNode.hasGoal()) value =  GOAL_FOUND;
-		else if(currentNode.hasWumpus()) value =  DIED_TO_WUMPUS;
-		else if(currentNode.hasPit()) value =  DIED_TO_PIT;
+		if(currentNode.hasGoal()) value = GOAL_FOUND;
+		else if(currentNode.hasWumpus()) value = DIED_TO_WUMPUS;
+		else if(currentNode.hasPit()) value = DIED_TO_PIT;
 		else if(currentNode.hasMinion()) value = DAMAGED_BY_MINION;
 		determinePenalty(value); //figure out what, if any, penalties to apply to score
 		return value;
@@ -394,6 +412,7 @@ public abstract class Agent {
 			case GOAL_FOUND:
 				//what to do if we hit a goal
 				goalsSoFar++;
+				grid.setNodeType(currentNode.getX(), currentNode.getY(), Grid.GOAL, false);
 				break;
 		}
 	}
@@ -565,8 +584,11 @@ public abstract class Agent {
 	 * @return <code>true</code> if the <code>Agent</code> is dead, <code>false</code> otherwise
 	 */
 	public boolean isDead(){
-		int status = currNodeStatus();
-		return (status == DIED_TO_WUMPUS || status == DIED_TO_PIT || lifePoints == 0);
+		return lifePoints == 0;
+	}
+	
+	public boolean solvedPuzzle(){
+		return goalsSoFar == grid.getNumGoals();
 	}
 	
 	/**
@@ -694,7 +716,7 @@ public abstract class Agent {
 	 * @return
 	 */
 	public int getLifePoints(){
-		return 0;
+		return lifePoints;
 	}
 	
 	/**
@@ -771,7 +793,7 @@ public abstract class Agent {
 	 */
 	public String movementStatusToString(){
 		String ret = "";
-		switch(currNodeStatus()){
+		switch(currentNodeStatus){
 			case SAFE:
 				ret = safeString();
 				break;
@@ -779,7 +801,10 @@ public abstract class Agent {
 				ret = "Bonk! You walked into a wall!\n";
 				break;
 			case DAMAGED_BY_MINION:
-				ret = "Ouch! Guess those minions aren't just for show after all.\n";
+				if(lifePoints > 0)
+					ret = "Ouch! Guess those minions aren't just for show after all.\n";
+				else
+					ret = "You perish valiantly doing battle against the hordes of minions.\n";
 				break;
 			case DIED_TO_WUMPUS:
 				ret = "The Wumpus has been waiting for a snack...looks like you're it.\n";
@@ -788,8 +813,7 @@ public abstract class Agent {
 				ret = "You've fallen into a pit! Good luck getting out before you turn to dust.\n";
 				break;
 			case GOAL_FOUND:
-				if(!grid.isSolved())
-					ret = "You found gold!\n";
+				ret = "You found gold!\n";
 				break;
 		}
 		return ret;

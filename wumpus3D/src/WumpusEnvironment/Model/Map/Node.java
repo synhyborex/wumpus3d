@@ -44,6 +44,19 @@ public class Node implements Comparable<Node>{
 			beliefs[i] = 6; //Agent.UNKNOWN
 	}
 	
+	public Node(Node n){
+		this.x = n.x;
+		this.y = n.y;
+		this.hasGoal = n.hasGoal;
+		this.isWall = n.isWall;
+		this.hasPit = n.hasPit;
+		this.hasWumpus = n.hasWumpus;
+		this.hasAgent = n.hasAgent;
+		this.hasFairy = n.hasFairy;
+		this.evaluated = false;
+		this.beliefs = n.beliefs;
+	}
+	
 	public int compareTo(Node n) {
 		return 0;
 	}
