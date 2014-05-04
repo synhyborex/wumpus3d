@@ -213,16 +213,16 @@ public abstract class Agent {
 			arrowPos = grid.getNode(arrowPos.getX()+addToX,arrowPos.getY()+addToY);
 			if(arrowPos.hasMinion()){
 				grid.setNodeType(arrowPos.getX(),arrowPos.getY(),Grid.MINION,false); //there is no longer a minion here
-				ApplicationWindow.writeToLog("You hear a shriek of pain...\r\n");
+				Logger.writeToLog("You hear a shriek of pain...\r\n");
 				return HIT_MINION;
 			}
 			else if(arrowPos.hasWumpus()){
 				grid.setNodeType(arrowPos.getX(),arrowPos.getY(),Grid.WUMPUS,false); //there is no longer a Wumpus here
-				ApplicationWindow.writeToLog("You hear a deafening roar...\r\n");
+				Logger.writeToLog("You hear a deafening roar...\r\n");
 				return HIT_WUMPUS;
 			}
 		}
-		ApplicationWindow.writeToLog("You listen for a dying scream, but it seems like your arrow missed...\r\n");
+		Logger.writeToLog("You listen for a dying scream, but it seems like your arrow missed...\r\n");
 		return HIT_WALL;
 	}
 	
@@ -852,7 +852,7 @@ public abstract class Agent {
 	 * @param s the String that the developer wants displayed in the log
 	 */
 	public void log(String s){
-		ApplicationWindow.writeToLog(s+"\r\n");
+		Logger.writeToLog(s+"\r\n");
 		//ApplicationWindow.setLogMessage(s + "\r\n");
 	}
 

@@ -21,6 +21,7 @@ import java.io.*;
 import java.nio.FloatBuffer; 
 import java.nio.IntBuffer;
 import java.util.*;
+import java.lang.*;
 
 import javax.media.opengl.GLAutoDrawable; 
 import javax.media.opengl.GLEventListener; 
@@ -34,10 +35,9 @@ import com.hackoeur.jglm.support.*;
 
 public class ApplicationWindow  extends JFrame implements ActionListener{// implements GLEventListener{
 	
-	protected static final String logSeparator = "---------------\r\n";
 	protected final static int MIN_DELAY = 0;
 	protected final static int MAX_DELAY = 1000;
-	protected final static int DEFAULT_DELAY = 100;	
+	protected final static int DEFAULT_DELAY = 100;
 	
 	protected GLU glu;  // for the GL Utility
 	int program; //shader program
@@ -122,10 +122,6 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 	JSplitPane mainView; //the main view for the log and map
 	//the log pane
 	JPanel logPane; //the pane that will hold both the log and the save button
-	JScrollPane logScrollPane; //the scroll pane that will hold the log
-	static JTextArea log; //the actual log
-	JButton saveLogButton; //the button to save the log
-	JFileChooser logSaver;
 	//the map pane
 	JPanel mapPane; //the map pane
 	
@@ -243,14 +239,15 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 			autoRun = false;
 		}
 		else if(source.equals(stepButton)){
-			runAgentStep(MapLoader.isSearchMap());
+			agentStep(MapLoader.isSearchMap());
 		}
 		else if(source.equals(autoStepButton)){
 			stopButton.setEnabled(true);
 			disableButtons(new JButton[]{stepButton,autoStepButton});
 			autoRun = true;
-			while(autoRun)
-				runAgentStep(MapLoader.isSearchMap());
+			for(;;)
+				if(autoRun)
+					agentStep(MapLoader.isSearchMap());
 		}
 		else if(source.equals(resetButton)){
 			autoRun = false;
@@ -260,45 +257,7 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 			grid = startGrid;
 			stopButton.setEnabled(false);
 			enableButtons(new JButton[]{stepButton,autoStepButton});
-			generateLogEntry(agent,log);
-		}
-		else if(source.equals(saveLogButton)){
-			logSaver = new JFileChooser(".");
-			logSaver.setDialogTitle("Choose where to save the log");
-			logSaver.setFileSelectionMode(JFileChooser.FILES_ONLY);
-	        logSaver.setFileFilter(new FileFilter() {
-	        	 
-	            public String getDescription() {
-	                return "Log files (*.txt)";
-	            }
-	         
-	            public boolean accept(File f) {
-	                if (f.isDirectory()) {
-	                    return true;
-	                } else {
-	                    return f.getName().toLowerCase().endsWith(".txt");
-	                }
-	            }
-	        });
-	        int result = logSaver.showOpenDialog(this);
-	        if(result == JFileChooser.APPROVE_OPTION){
-	        	String logFileName = logSaver.getSelectedFile().getName();
-	        	if(logFileName.indexOf('.') < 0)
-	        		logFileName += ".txt";
-	        	File logFile = new File(logFileName);
-	        	try
-	            {
-	              FileWriter localFileWriter = new FileWriter(logFile);
-	              PrintWriter localPrintWriter = new PrintWriter(localFileWriter);
-	              
-	              localPrintWriter.println(log.getText());
-	              localPrintWriter.close();
-	            }
-	            catch (IOException localIOException)
-	            {
-	              localIOException.printStackTrace();
-	            }
-	        }
+			Logger.generateLogEntry(agent,grid);
 		}
     }
 	
@@ -349,20 +308,7 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 		
 		//it will have a map and a log
 		//create log panel
-		logPane = new JPanel();
-		logPane.setLayout(new BorderLayout());
-		log = new JTextArea();
-		log.setEditable(false);
-		log.setFont(new Font("Consolas",Font.PLAIN, 12));
-		log.setLineWrap(true);
-		log.setWrapStyleWord(true);
-		logScrollPane = new JScrollPane(log);
-		logScrollPane.setWheelScrollingEnabled(true);
-		logScrollPane.setMaximumSize(new Dimension(100, 400));
-		saveLogButton = new JButton("Save log...");
-		saveLogButton.addActionListener(this);
-		logPane.add(logScrollPane,"Center");
-		logPane.add(saveLogButton,"South");
+		logPane = new Logger();
 		
 		//create panel for map display
 		mapPane = new JPanel();
@@ -385,35 +331,35 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 			agent.setFairy(new Fairy(grid,grid.getAgentLocation()));
 		}
 		//print start of log
-		log.setText(null); //clear any text that was there before
-		log.append(logSeparator +
+		Logger.clear(); //clear any text that was there before
+		Logger.writeToLog(Logger.logSeparator +
 				" * Map start *\r\n" +
-				logSeparator);
-		generateLogEntry(agent,log);
+				Logger.logSeparator);
+		Logger.generateLogEntry(agent,grid);
 		
 		//enable movement buttons
 		enableButtons(new JButton[]{stepButton,autoStepButton,resetButton});
 	}
 	
-	protected void runAgentStep(boolean fairy){
+	protected void agentStep(boolean fairy){
 		if(!agent.isDead() && !grid.isSolved()){
 			agent.step();
 			if(fairy){
 				if(agent.fairyFoundAllGoals()){
-					generateLogEntry(agent,log);
+					Logger.generateLogEntry(agent,grid);
 				}
 			}
-			else generateLogEntry(agent,log);
+			else Logger.generateLogEntry(agent,grid);
 		}
 		if(agent.isDead()){
-			log.append("* You died! Better luck next time. *\r\n");
-			log.append("*** GAME OVER ***\r\n");
+			Logger.writeToLog("* You died! Better luck next time. *\r\n");
+			Logger.writeToLog("*** GAME OVER ***\r\n");
 			disableButtons(new JButton[]{stopButton,stepButton,autoStepButton});
 			autoRun = false;
 		}
 		else if(grid.isSolved()){
-			log.append("* You found all the gold! *\r\n");
-			log.append("*** GAME OVER ***\r\n");
+			Logger.writeToLog("* You found all the gold! *\r\n");
+			Logger.writeToLog("*** GAME OVER ***\r\n");
 			disableButtons(new JButton[]{stopButton,stepButton,autoStepButton});
 			autoRun = false;
 		}
@@ -607,19 +553,4 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 	    gl.glVertex2d(s, -s);
 	    gl.glEnd();*/
 	}
-	
-	protected static void generateLogEntry(Agent a, JTextArea log){
-		log.append(grid.gridToString()); //print the grid
-		log.append(a.locationToString()); //print the Agent's location
-		log.append("Agent heading: " + a.headingToString() + "\r\n"); //print the Agent's heading
-		log.append(a.movementStatusToString()); //print what happened last step
-		log.append(logSeparator); //print the separator for the next round
-		log.append("\r\n");
-	}
-	
-	public static JTextArea getLog(){return log;}
-	
-	public static void writeToLog(String s){log.append(s);}
-	
-	public static Grid currentGrid(){return grid;}
 }
