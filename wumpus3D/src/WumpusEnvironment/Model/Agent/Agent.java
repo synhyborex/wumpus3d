@@ -213,16 +213,16 @@ public abstract class Agent {
 			arrowPos = grid.getNode(arrowPos.getX()+addToX,arrowPos.getY()+addToY);
 			if(arrowPos.hasMinion()){
 				grid.setNodeType(arrowPos.getX(),arrowPos.getY(),Grid.MINION,false); //there is no longer a minion here
-				ApplicationWindow.writeToLog("You hear a shriek of pain...\n");
+				ApplicationWindow.writeToLog("You hear a shriek of pain...\r\n");
 				return HIT_MINION;
 			}
 			else if(arrowPos.hasWumpus()){
 				grid.setNodeType(arrowPos.getX(),arrowPos.getY(),Grid.WUMPUS,false); //there is no longer a Wumpus here
-				ApplicationWindow.writeToLog("You hear a deafening roar...\n");
+				ApplicationWindow.writeToLog("You hear a deafening roar...\r\n");
 				return HIT_WUMPUS;
 			}
 		}
-		ApplicationWindow.writeToLog("You listen for a dying scream, but it seems like your arrow missed...\n");
+		ApplicationWindow.writeToLog("You listen for a dying scream, but it seems like your arrow missed...\r\n");
 		return HIT_WALL;
 	}
 	
@@ -798,22 +798,22 @@ public abstract class Agent {
 				ret = safeString();
 				break;
 			case HIT_WALL:
-				ret = "Bonk! You walked into a wall!\n";
+				ret = "Bonk! You walked into a wall!\r\n";
 				break;
 			case DAMAGED_BY_MINION:
 				if(lifePoints > 0)
-					ret = "Ouch! Guess those minions aren't just for show after all.\n";
+					ret = "Ouch! Guess those minions aren't just for show after all.\r\n";
 				else
-					ret = "You perish valiantly doing battle against the hordes of minions.\n";
+					ret = "You perish valiantly doing battle against the hordes of minions.\r\n";
 				break;
 			case DIED_TO_WUMPUS:
-				ret = "The Wumpus has been waiting for a snack...looks like you're it.\n";
+				ret = "The Wumpus has been waiting for a snack...looks like you're it.\r\n";
 				break;
 			case DIED_TO_PIT:
-				ret = "You've fallen into a pit! Good luck getting out before you turn to dust.\n";
+				ret = "You've fallen into a pit! Good luck getting out before you turn to dust.\r\n";
 				break;
 			case GOAL_FOUND:
-				ret = "You found gold!\n";
+				ret = "You found gold!\r\n";
 				break;
 		}
 		return ret;
@@ -823,27 +823,27 @@ public abstract class Agent {
 		String ret;
 		boolean wumpus = nearWumpus(), pit = nearPit(), minion = nearMinion();
 		if(wumpus && pit && minion)
-			ret = "You smell something horrible nearby, feel a breeze, and hear Wumpus minions cackling nearby...\n";
+			ret = "You smell something horrible nearby, feel a breeze, and hear Wumpus minions cackling nearby...\r\n";
 		else if(wumpus && pit)
-			ret = "You smell something horrible nearby and feel a breeze...\n";
+			ret = "You smell something horrible nearby and feel a breeze...\r\n";
 		else if(wumpus && minion)
-			ret = "You smell something horrible nearby and hear Wumpus minions cackling nearby...\n";
+			ret = "You smell something horrible nearby and hear Wumpus minions cackling nearby...\r\n";
 		else if(pit && minion)
-			ret = "You feel a breeze and hear Wumpus minions cackling nearby...\n";
+			ret = "You feel a breeze and hear Wumpus minions cackling nearby...\r\n";
 		else if(wumpus)
-			ret = "You smell something horrible nearby...\n";
+			ret = "You smell something horrible nearby...\r\n";
 		else if(pit)
-			ret = "You feel a breeze...\n";
+			ret = "You feel a breeze...\r\n";
 		else if(minion)
-			ret = "You hear Wumpus minions cackling nearby...\n";
-		else ret = "You feel safe here...\n";
+			ret = "You hear Wumpus minions cackling nearby...\r\n";
+		else ret = "You feel safe here...\r\n";
 		if(nearGold())
-			ret += "You see something glittering nearby...\n";
+			ret += "You see something glittering nearby...\r\n";
 		return ret;
 	}
 	
 	public String locationToString(){
-		return "Location: (" + currentNode.getX() + "," + currentNode.getY() + ")\n";
+		return "Location: (" + currentNode.getX() + "," + currentNode.getY() + ")\r\n";
 	}
 	
 	/**
@@ -852,8 +852,8 @@ public abstract class Agent {
 	 * @param s the String that the developer wants displayed in the log
 	 */
 	public void log(String s){
-		ApplicationWindow.writeToLog(s+"\n");
-		//ApplicationWindow.setLogMessage(s + "\n");
+		ApplicationWindow.writeToLog(s+"\r\n");
+		//ApplicationWindow.setLogMessage(s + "\r\n");
 	}
 
 }

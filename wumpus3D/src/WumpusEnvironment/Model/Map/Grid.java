@@ -152,7 +152,7 @@ public class Grid {
 					sb.append("F ");
 				else sb.append("- ");
 			}
-			sb.append('\n');
+			sb.append("\r\n");
 		}
 		
 		return sb.toString();

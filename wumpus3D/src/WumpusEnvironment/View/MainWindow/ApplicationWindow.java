@@ -34,7 +34,7 @@ import com.hackoeur.jglm.support.*;
 
 public class ApplicationWindow  extends JFrame implements ActionListener{// implements GLEventListener{
 	
-	protected static final String logSeparator = "---------------\n";
+	protected static final String logSeparator = "---------------\r\n";
 	protected final static int MIN_DELAY = 0;
 	protected final static int MAX_DELAY = 1000;
 	protected final static int DEFAULT_DELAY = 100;	
@@ -124,7 +124,8 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 	JPanel logPane; //the pane that will hold both the log and the save button
 	JScrollPane logScrollPane; //the scroll pane that will hold the log
 	static JTextArea log; //the actual log
-	JButton saveLog; //the button to save the log
+	JButton saveLogButton; //the button to save the log
+	JFileChooser logSaver;
 	//the map pane
 	JPanel mapPane; //the map pane
 	
@@ -261,6 +262,44 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 			enableButtons(new JButton[]{stepButton,autoStepButton});
 			generateLogEntry(agent,log);
 		}
+		else if(source.equals(saveLogButton)){
+			logSaver = new JFileChooser(".");
+			logSaver.setDialogTitle("Choose where to save the log");
+			logSaver.setFileSelectionMode(JFileChooser.FILES_ONLY);
+	        logSaver.setFileFilter(new FileFilter() {
+	        	 
+	            public String getDescription() {
+	                return "Log files (*.txt)";
+	            }
+	         
+	            public boolean accept(File f) {
+	                if (f.isDirectory()) {
+	                    return true;
+	                } else {
+	                    return f.getName().toLowerCase().endsWith(".txt");
+	                }
+	            }
+	        });
+	        int result = logSaver.showOpenDialog(this);
+	        if(result == JFileChooser.APPROVE_OPTION){
+	        	String logFileName = logSaver.getSelectedFile().getName();
+	        	if(logFileName.indexOf('.') < 0)
+	        		logFileName += ".txt";
+	        	File logFile = new File(logFileName);
+	        	try
+	            {
+	              FileWriter localFileWriter = new FileWriter(logFile);
+	              PrintWriter localPrintWriter = new PrintWriter(localFileWriter);
+	              
+	              localPrintWriter.println(log.getText());
+	              localPrintWriter.close();
+	            }
+	            catch (IOException localIOException)
+	            {
+	              localIOException.printStackTrace();
+	            }
+	        }
+		}
     }
 	
 	protected void addOtherMenus(){
@@ -318,10 +357,10 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 		logScrollPane = new JScrollPane(log);
 		logScrollPane.setWheelScrollingEnabled(true);
 		logScrollPane.setMaximumSize(new Dimension(100, 400));
-		saveLog = new JButton("Save log...");
-		saveLog.addActionListener(this);
+		saveLogButton = new JButton("Save log...");
+		saveLogButton.addActionListener(this);
 		logPane.add(logScrollPane,"Center");
-		
+		logPane.add(saveLogButton,"South");
 		
 		//create panel for map display
 		mapPane = new JPanel();
@@ -337,8 +376,8 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 	
 	protected void showMap(boolean fairy){
 		//agent.secretReset();
-		agent = startAgent;
-		grid = startGrid;
+		//agent = startAgent;
+		//grid = startGrid;
 		agent.setStartLocation(grid.getAgentLocation());
 		if(fairy){
 			agent.setFairy(new Fairy(grid,grid.getAgentLocation()));
@@ -346,7 +385,7 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 		//print start of log
 		log.setText(null); //clear any text that was there before
 		log.append(logSeparator +
-				" * Map start *\n" +
+				" * Map start *\r\n" +
 				logSeparator);
 		generateLogEntry(agent,log);
 		
@@ -365,14 +404,14 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 			else generateLogEntry(agent,log);
 		}
 		if(agent.isDead()){
-			log.append("* You died! Better luck next time. *\n");
-			log.append("*** GAME OVER ***\n");
+			log.append("* You died! Better luck next time. *\r\n");
+			log.append("*** GAME OVER ***\r\n");
 			disableButtons(new JButton[]{stopButton,stepButton,autoStepButton});
 			autoRun = false;
 		}
 		else if(grid.isSolved()){
-			log.append("* You found all the gold! *\n");
-			log.append("*** GAME OVER ***\n");
+			log.append("* You found all the gold! *\r\n");
+			log.append("*** GAME OVER ***\r\n");
 			disableButtons(new JButton[]{stopButton,stepButton,autoStepButton});
 			autoRun = false;
 		}
@@ -509,27 +548,27 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 		// Create vertexShader.
 		int vertexShader = gl.glCreateShader(GL_VERTEX_SHADER);
 		String[] vertexShaderSource = new String[1];
-		vertexShaderSource[0] = "#version 330\n" +
-		    "layout(location=0) attribute vec3 position;\n" +
-		    "layout(location=1) attribute vec3 color;\n" +
-		    "varying vec3 vColor;\n" +
-		    "void main(void)\n" +
-		    "{\n" +
-		    "gl_Position = vec4(position, 1.0);\n" +
-		    "vColor = vec4(color, 1.0);\n" +
-		    "}\n";
+		vertexShaderSource[0] = "#version 330\r\n" +
+		    "layout(location=0) attribute vec3 position;\r\n" +
+		    "layout(location=1) attribute vec3 color;\r\n" +
+		    "varying vec3 vColor;\r\n" +
+		    "void main(void)\r\n" +
+		    "{\r\n" +
+		    "gl_Position = vec4(position, 1.0);\r\n" +
+		    "vColor = vec4(color, 1.0);\r\n" +
+		    "}\r\n";
 		gl.glShaderSource(vertexShader, 1, vertexShaderSource, null);
 		gl.glCompileShader(vertexShader);
 
 		// Create and fragment shader.
 		int fragmentShader = gl.glCreateShader(GL_FRAGMENT_SHADER);
 		String[] fragmentShaderSource = new String[1];
-		fragmentShaderSource[0] = "#version 330\n" +
-		    "varying vec4 vColor;\n" +
-		    "void main(void)\n" +
-		    "{\n" +
-		    "gl_FragColor = vColor;\n" +
-		    "}\n";
+		fragmentShaderSource[0] = "#version 330\r\n" +
+		    "varying vec4 vColor;\r\n" +
+		    "void main(void)\r\n" +
+		    "{\r\n" +
+		    "gl_FragColor = vColor;\r\n" +
+		    "}\r\n";
 		gl.glShaderSource(fragmentShader, 1, fragmentShaderSource, null);
 		gl.glCompileShader(fragmentShader);
 
@@ -570,10 +609,10 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 	protected static void generateLogEntry(Agent a, JTextArea log){
 		log.append(grid.gridToString()); //print the grid
 		log.append(a.locationToString()); //print the Agent's location
-		log.append("Agent heading: " + a.headingToString() + "\n"); //print the Agent's heading
+		log.append("Agent heading: " + a.headingToString() + "\r\n"); //print the Agent's heading
 		log.append(a.movementStatusToString()); //print what happened last step
 		log.append(logSeparator); //print the separator for the next round
-		log.append("\n");
+		log.append("\r\n");
 	}
 	
 	public static JTextArea getLog(){return log;}
