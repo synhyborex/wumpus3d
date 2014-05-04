@@ -354,6 +354,8 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 		log = new JTextArea();
 		log.setEditable(false);
 		log.setFont(new Font("Consolas",Font.PLAIN, 12));
+		log.setLineWrap(true);
+		log.setWrapStyleWord(true);
 		logScrollPane = new JScrollPane(log);
 		logScrollPane.setWheelScrollingEnabled(true);
 		logScrollPane.setMaximumSize(new Dimension(100, 400));
