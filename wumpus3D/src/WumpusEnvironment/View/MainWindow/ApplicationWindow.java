@@ -7,6 +7,7 @@ import javax.media.opengl.awt.*;
 import javax.media.opengl.glu.*;
 import javax.media.opengl.DebugGL3;
 import javax.swing.*;
+import javax.swing.event.*;
 import javax.swing.filechooser.FileFilter;
 
 import com.jogamp.opengl.util.*;
@@ -38,6 +39,7 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 	protected final static int MIN_DELAY = 0;
 	protected final static int MAX_DELAY = 1000;
 	protected final static int DEFAULT_DELAY = 100;
+	public static int CURRENT_DELAY = DEFAULT_DELAY;
 	
 	protected GLU glu;  // for the GL Utility
 	int program; //shader program
@@ -239,7 +241,7 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 			autoRun = false;
 		}
 		else if(source.equals(stepButton)){
-			agentStep(MapLoader.isSearchMap());
+			nextStep();
 		}
 		else if(source.equals(autoStepButton)){
 			stopButton.setEnabled(true);
@@ -247,7 +249,8 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 			autoRun = true;
 			for(;;)
 				if(autoRun)
-					agentStep(MapLoader.isSearchMap());
+					nextStep();
+				else break;
 		}
 		else if(source.equals(resetButton)){
 			autoRun = false;
@@ -286,6 +289,13 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 		delayInterval.setMinorTickSpacing(50);
 		delayInterval.setPaintTicks(true);
 		delayInterval.setPaintLabels(true);
+		delayInterval.addChangeListener(new ChangeListener() {
+
+            @Override
+            public void stateChanged(ChangeEvent arg0) {
+            	CURRENT_DELAY = delayInterval.getValue();
+            }
+        });
 		Dimension d = delayInterval.getPreferredSize();
 		delayInterval.setPreferredSize(new Dimension(d.width+125,d.height));
 		stopButton = new JButton("STOP");
@@ -341,16 +351,8 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 		enableButtons(new JButton[]{stepButton,autoStepButton,resetButton});
 	}
 	
-	protected void agentStep(boolean fairy){
-		if(!agent.isDead() && !grid.isSolved()){
-			agent.step();
-			if(fairy){
-				if(agent.fairyFoundAllGoals()){
-					Logger.generateLogEntry(agent,grid);
-				}
-			}
-			else Logger.generateLogEntry(agent,grid);
-		}
+	protected void nextStep(){
+		AgentHandler.agentStep(agent, grid, MapLoader.isSearchMap());
 		if(agent.isDead()){
 			Logger.writeToLog("* You died! Better luck next time. *\r\n");
 			Logger.writeToLog("*** GAME OVER ***\r\n");

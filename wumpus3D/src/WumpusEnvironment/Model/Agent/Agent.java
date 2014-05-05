@@ -10,7 +10,7 @@ import java.util.*;
  * @author Bhargav
  *
  */
-public abstract class Agent {
+public abstract class Agent extends Thread {
 	//agent directional variables
 	public static final int NORTH = 0;
 	public static final int EAST = 1;
@@ -235,6 +235,12 @@ public abstract class Agent {
 	 * @return the value of what is occupying the <code>Node</code> other than the <code>Agent</code>, or SAFE if the Agent is alone
 	 */
 	public int moveForward(){
+		try{
+			sleep(ApplicationWindow.CURRENT_DELAY);
+		}
+		catch(InterruptedException e){
+			e.printStackTrace();
+		}
 		int addToX = 0, addToY = 0;
 		switch(HEADING){
 			case NORTH:
@@ -292,6 +298,13 @@ public abstract class Agent {
 		if(HEADING == WEST)
 			HEADING = NORTH;
 		else HEADING++;
+		
+		try{
+			sleep(ApplicationWindow.CURRENT_DELAY);
+		}
+		catch(InterruptedException e){
+			e.printStackTrace();
+		}
 	}
 	
 	/**
@@ -301,6 +314,13 @@ public abstract class Agent {
 		if(HEADING == NORTH)
 			HEADING = WEST;
 		else HEADING--;
+		
+		try{
+			sleep(ApplicationWindow.CURRENT_DELAY);
+		}
+		catch(InterruptedException e){
+			e.printStackTrace();
+		}
 	}
 	
 	/**
