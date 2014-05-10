@@ -1,0 +1,2 @@
+javac -Xlint:unchecked -classpath "jogl-jar/jogl-all.jar;jogl-jar;gluegen.jar;WumpusEnvironment.jar;." .\Agents\*.java
+java -Xint -classpath "jogl-jar/jogl-all.jar;jogl-jar;gluegen.jar;WumpusEnvironment.jar;." WumpusEnvironment.View.MainWindow.ApplicationWindow

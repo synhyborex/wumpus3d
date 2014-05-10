@@ -10,12 +10,6 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.filechooser.FileFilter;
 
-import com.jogamp.opengl.util.*;
-import static javax.media.opengl.GL.*;  // GL constants
-import static javax.media.opengl.GL3.*; // GL3 constants
-import static javax.media.opengl.GL2ES2.*; // GL3 constants
-import static javax.media.opengl.GL3.*; // GL3 constants
-
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
@@ -23,16 +17,6 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.*;
 import java.lang.*;
-
-import javax.media.opengl.GLAutoDrawable; 
-import javax.media.opengl.GLEventListener; 
-import javax.media.opengl.GLException; 
-import com.jogamp.common.nio.Buffers; 
-import com.jogamp.opengl.util.texture.Texture;
-import com.jogamp.opengl.util.texture.TextureIO;
-import com.hackoeur.jglm.*;
-import com.hackoeur.jglm.buffer.*;
-import com.hackoeur.jglm.support.*;
 
 public class ApplicationWindow  extends JFrame implements ActionListener{// implements GLEventListener{
 	
@@ -152,6 +136,8 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 	}
 	
 	public static void main(String[] args){
+		//set up path to all the native files
+		System.setProperty("org.lwjgl.librarypath", new File("./lwjgl/natives").getAbsolutePath());
 		// Create the frame that will display the environment
 		JFrame frame = new ApplicationWindow();		
 		
@@ -171,14 +157,7 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 		
 		//size and display the frame
 		frame.pack();
-		frame.setVisible(true);		
-		
-		//create Agent now that Grid is fully instantiated
-		//agent = AgentLoader.loadAgentFromFile(agentChooser.getSelectedFile());
-		if(agent != null){
-
-			
-		}
+		frame.setVisible(true);
 	}
 	
 	public void actionPerformed(ActionEvent e){
@@ -375,184 +354,5 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 	protected void enableButtons(JButton[] list){
 		for(JButton j: list)
 			j.setEnabled(true);
-	}
-
-	//@Override
-	public void display(GLAutoDrawable drawable) {
-		//put drawing code here
-		//updateMovingTri();
-	    //renderMovingTri(arg);
-		GL3 gl = drawable.getGL().getGL3();
-		drawable.setGL(new DebugGL3(drawable.getGL().getGL3()));
-		
-		gl.glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-		//gl.glUseProgram(program);
-		
-		gl.glEnableVertexAttribArray(h_aPosition);
-		gl.glBindBuffer(GL_ARRAY_BUFFER,buffers.get(0));
-		gl.glVertexAttribPointer(h_aPosition, 3, GL_FLOAT, false, 0, 0);
-		
-		gl.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,buffers.get(1));
-		gl.glDrawElements(GL_TRIANGLES, idxlen, GL_UNSIGNED_SHORT, 0);
-		
-		gl.glDisableVertexAttribArray(h_aPosition);
-   	    //gl.glBindVertexArray(vertexArray.get(0));
-	    //gl.glDrawArrays(GL.GL_TRIANGLES, 0, 6);
-	}
-
-	////@Override
-	public void dispose(GLAutoDrawable arg) {
-		// cleanup code
-		
-	}
-
-	//@Override
-	public void init(GLAutoDrawable drawable) {
-		// OpenGL initialization code
-		drawable.getGL().setSwapInterval(1); //set v-sync
-		GL3 gl = drawable.getGL().getGL3();      // get the OpenGL graphics context
-		drawable.setGL(new DebugGL3(drawable.getGL().getGL3()));
-		//glu = new GLU();                         // get GL Utilities
-		gl.glClearColor(0.0f, 1.0f, 1.0f, 1.0f); // set background (clear) color
-		gl.glClearDepth(1.0f);      // set clear depth value to farthest
-		gl.glEnable(GL_DEPTH_TEST); // enables depth testing
-		gl.glDepthFunc(GL_LEQUAL);  // the type of depth test to do
-		//gl.glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // best perspective correction
-		//gl.glShadeModel(GL_SMOOTH); // blends colors nicely, and smoothes out lighting
-		
-		installShader(drawable);
-		
-		idxlen = 24;
-		gl.glGenBuffers(2, buffers);
-		gl.glBindBuffer(GL_ARRAY_BUFFER, buffers.get(0));
-		gl.glBufferData(GL_ARRAY_BUFFER, 4 * 16 * 3, CubeBuffObj, GL_STATIC_DRAW);
-		
-		gl.glBindBuffer(GL_ARRAY_BUFFER, buffers.get(1));
-	    gl.glBufferData(GL_ARRAY_BUFFER, 4 * 8 * 3, CubeIdxBuffObj, GL_STATIC_DRAW);
-	    
-	    //set up handles
-	    //h_aPosition = gl.glGetAttribLocation(program,"position");
-	    //h_aColor = gl.glGetAttribLocation(program, "color");
-	    
-	    //gl.glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-	   // gl.glUseProgram(program);
-		
-		/*gl.glEnableClientState(GL2.GL_VERTEX_ARRAY);
-		gl.glGenBuffers(2, buffers);
-
-	    gl.glBindBuffer(GL2.GL_ARRAY_BUFFER, buffers.get(0));
-	    gl.glBufferData(GL2.GL_ARRAY_BUFFER, 4 * 6 * 2, vertexFB, GL3.GL_STATIC_DRAW);
-
-	    gl.glBindBuffer(GL2.GL_ARRAY_BUFFER, buffers.get(1));
-	    gl.glBufferData(GL2.GL_ARRAY_BUFFER, 4 * 6 * 3, colorFB, GL2.GL_STREAM_DRAW);
-	    
-	 // Create Vertex Array.
-	    gl.glGenVertexArrays(1, vertexArray);
-	    gl.glBindVertexArray(vertexArray.get(0));
-
-	    // Specify how data should be sent to the Program.
-
-	    // VertexAttribArray 0 corresponds with location 0 in the vertex shader.
-	    gl.glEnableVertexAttribArray(0);
-	    gl.glBindBuffer(GL2.GL_ARRAY_BUFFER, buffers.get(0));
-	    gl.glVertexAttribPointer(0, 2, GL.GL_FLOAT, false, 0, 0);
-
-	    // VertexAttribArray 1 corresponds with location 1 in the vertex shader.
-	    gl.glEnableVertexAttribArray(1);
-	    gl.glBindBuffer(GL2.GL_ARRAY_BUFFER, buffers.get(1));
-	    gl.glVertexAttribPointer(1, 3, GL.GL_FLOAT, false, 0, 0);*/
-	}
-
-	//@Override
-	public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-		g_width = width;
-		g_height = height;
-		// what to do when window is resized
-		GL3 gl = drawable.getGL().getGL3();  // get the OpenGL 3 graphics context
-		//drawable.setGL(new DebugGL3(drawable.getGL().getGL3()));
-		 
-	      if (height == 0) height = 1;   // prevent divide by zero
-	      float aspect = (float)width / (float)height;
-	 
-	      // Set the view port (display area) to cover the entire window
-	      gl.glViewport(0, 0, width, height);
-	      //glu.gluPerspective(45.0, aspect, 0.1, 100.0); // fovy, aspect, zNear, zFar
-	 
-	      // Setup perspective projection, with aspect ratio matches viewport
-	      /*gl.glMatrixMode(GL_PROJECTION);  // choose projection matrix
-	      gl.glLoadIdentity();             // reset projection matrix
-	      glu.gluPerspective(45.0, aspect, 0.1, 100.0); // fovy, aspect, zNear, zFar
-	 
-	      // Enable the model-view transform
-	      gl.glMatrixMode(GL_MODELVIEW);
-	      gl.glLoadIdentity(); // reset*/
-		
-	}
-	
-	protected void installShader(GLAutoDrawable drawable){
-		GL3 gl = drawable.getGL().getGL3();
-		drawable.setGL(new DebugGL3(drawable.getGL().getGL3()));
-		// Create program.
-		program = gl.glCreateProgram();
-
-		// Create vertexShader.
-		int vertexShader = gl.glCreateShader(GL_VERTEX_SHADER);
-		String[] vertexShaderSource = new String[1];
-		vertexShaderSource[0] = "#version 330\r\n" +
-		    "layout(location=0) attribute vec3 position;\r\n" +
-		    "layout(location=1) attribute vec3 color;\r\n" +
-		    "varying vec3 vColor;\r\n" +
-		    "void main(void)\r\n" +
-		    "{\r\n" +
-		    "gl_Position = vec4(position, 1.0);\r\n" +
-		    "vColor = vec4(color, 1.0);\r\n" +
-		    "}\r\n";
-		gl.glShaderSource(vertexShader, 1, vertexShaderSource, null);
-		gl.glCompileShader(vertexShader);
-
-		// Create and fragment shader.
-		int fragmentShader = gl.glCreateShader(GL_FRAGMENT_SHADER);
-		String[] fragmentShaderSource = new String[1];
-		fragmentShaderSource[0] = "#version 330\r\n" +
-		    "varying vec4 vColor;\r\n" +
-		    "void main(void)\r\n" +
-		    "{\r\n" +
-		    "gl_FragColor = vColor;\r\n" +
-		    "}\r\n";
-		gl.glShaderSource(fragmentShader, 1, fragmentShaderSource, null);
-		gl.glCompileShader(fragmentShader);
-
-		// Attach shaders to program.
-		gl.glAttachShader(program, vertexShader);
-		gl.glAttachShader(program, fragmentShader);
-		gl.glLinkProgram(program);
-	}
-	
-	void setProjMatrix(){
-		Mat4 proj = Matrices.perspective(80.f,(float)g_width/g_height,0.1f,100.f);
-	}
-	
-	protected void updateMovingTri() {
-	    // what to update each frame
-		/*theta += 0.01;
-	    s = Math.sin(theta);
-	    c = Math.cos(theta);*/
-	}
-	
-	protected void renderMovingTri(GLAutoDrawable drawable) {
-	    /*GL2 gl = drawable.getGL().getGL2();
-	    
-	    //clear background color
-	    gl.glClear(GL.GL_COLOR_BUFFER_BIT);
-	    
-	    // draw a triangle filling the window
-	    gl.glBegin(GL.GL_TRIANGLES);
-	    gl.glColor3f(1, 0, 0);
-	    gl.glVertex2d(-c, -c);
-	    gl.glColor3f(0, 1, 0);
-	    gl.glVertex2d(0, c);
-	    gl.glColor3f(0, 0, 1);
-	    gl.glVertex2d(s, -s);
-	    gl.glEnd();*/
 	}
 }
