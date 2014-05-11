@@ -231,6 +231,22 @@ public class Grid {
 	}
 	
 	/**
+	 * Returns the width of the grid
+	 * @return the width of the grid
+	 */
+	public int getWidth(){
+		return width;
+	}
+	
+	/**
+	 * Returns the height of the grid
+	 * @return the height of the grid
+	 */
+	public int getHeight(){
+		return height;
+	}
+	
+	/**
 	 * Returns the location of the <code>Agent</code> on the <code>Grid</code>
 	 * @return the location of the <code>Agent</code> on the <code>Grid</code>
 	 */

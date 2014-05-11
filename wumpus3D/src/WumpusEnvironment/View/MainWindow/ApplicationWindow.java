@@ -177,8 +177,11 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 	        int result = agentChooser.showOpenDialog(this);
 	        if(result == JFileChooser.APPROVE_OPTION){
 	        	agent = AgentLoader.loadAgentFromFile(agentChooser.getSelectedFile());
-	        	addOtherMenus();
-	        	showMainWindowContents();
+	        	if(agent != null){
+		        	addOtherMenus();
+		        	showMainWindowContents();
+	        	}
+	        	else actionPerformed(e);
 	        }
 		}
 		else if(source.equals(chooseMapOption)){
@@ -202,7 +205,7 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 	        int result = mapChooser.showOpenDialog(this);
 	        if(result == JFileChooser.APPROVE_OPTION){
 	        	grid = MapLoader.loadMapFromFile(mapChooser.getSelectedFile());
-	        	grid.setCleanInitialGrid();
+	        	//grid.setCleanInitialGrid();
 	        	showMap(MapLoader.isSearchMap());
 	        }
 		}
@@ -293,34 +296,10 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 		
 		//create panel for map display
 		mapPane = new JPanel();
-		// Create the OpenGL rendering canvas
-        GLJPanel canvas = new MapCanvas();
-        //canvas.setMinimumSize(new Dimension(200, 200));
- 
-        // Create a animator that drives canvas' display() at the specified FPS.
-        final FPSAnimator animator = new FPSAnimator(canvas, 60, true);
- 
-        // Create the top-level container frame
-        mapPane.add(canvas,"Center");
-        this.addWindowListener(new WindowAdapter() {
-           @Override
-           public void windowClosing(WindowEvent e) {
-              // Use a dedicate thread to run the stop() to ensure that the
-              // animator stops before program exits.
-              new Thread() {
-                 @Override
-                 public void run() {
-                    if (animator.isStarted()) animator.stop();
-                    System.exit(0);
-                 }
-              }.start();
-           }
-        });
-        animator.start(); // start the animation loop
 		
 		//create the split pane that will display the map and the log
 		mainView = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-				canvas,logPane);
+				mapPane,logPane);
 		mainView.setDividerLocation(g_width-275); //log is smaller size than map
 		mainView.setResizeWeight(1.0); //make sure only map gets resized when frame gets resized
 		mainWindow.add(mainView,"Center");
@@ -345,6 +324,32 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 		
 		//enable movement buttons
 		enableButtons(new JButton[]{stepButton,autoStepButton,resetButton});
+		
+		// Create the OpenGL rendering canvas
+        GLJPanel canvas = new MapCanvas();
+        //canvas.setMinimumSize(new Dimension(200, 200));
+ 
+        // Create a animator that drives canvas' display() at the specified FPS.
+        final FPSAnimator animator = new FPSAnimator(canvas, 60, true);
+ 
+        // Create the top-level container frame
+        mapPane.add(canvas,"Center");
+        this.addWindowListener(new WindowAdapter() {
+           @Override
+           public void windowClosing(WindowEvent e) {
+              // Use a dedicate thread to run the stop() to ensure that the
+              // animator stops before program exits.
+              new Thread() {
+                 @Override
+                 public void run() {
+                    if (animator.isStarted()) animator.stop();
+                    System.exit(0);
+                 }
+              }.start();
+           }
+        });
+        animator.start(); // start the animation loop
+		mainView.setLeftComponent(canvas);
 	}
 	
 	protected void nextStep(){
