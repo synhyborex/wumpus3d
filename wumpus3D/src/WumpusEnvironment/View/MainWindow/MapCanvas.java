@@ -172,7 +172,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener {
 				else if(mapNode.hasMinion())
 					drawMinion(drawable,mapNode);
 				else if(mapNode.hasAgent())
-					drawAgent(drawable,mapNode);
+					drawWall(drawable,mapNode);
 				else if(mapNode.hasFairy())
 					drawFairy(drawable,mapNode);
 				else drawFloor(drawable,mapNode);
