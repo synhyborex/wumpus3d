@@ -10,6 +10,8 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.filechooser.FileFilter;
 
+import com.jogamp.opengl.util.FPSAnimator;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
@@ -118,7 +120,7 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 		setMinimumSize(new Dimension(g_width, g_height));
 		
 		//create the main view
-		mainWindow = new JPanel();
+		mainWindow = new JPanel(new BorderLayout());
 		mainWindow.setLayout(new BorderLayout()); //set layout
 		//create the menu bar for the frame
 		//first menu
@@ -133,31 +135,21 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 		setJMenuBar(menuBar); //add menu bar to frame
 		
 		add(mainWindow);
+		pack();
+		setVisible(true);
 	}
 	
 	public static void main(String[] args){
-		//set up path to all the native files
-		System.setProperty("org.lwjgl.librarypath", new File("./lwjgl/natives").getAbsolutePath());
 		// Create the frame that will display the environment
-		JFrame frame = new ApplicationWindow();		
-		
-		// The OpenGL profile. Handles the version of OpenGL to use
-		/*GLProfile glp = GLProfile.get(GLProfile.GL3);
-		GLProfile.initSingleton();
-		GLCapabilities caps = new GLCapabilities(glp);
-		GLCanvas canvas = new GLCanvas(caps);
-		
-		// The Animator we need for the render loop
-		//Animator animator = new Animator(canvas);
-		//animator.start();
-		
-		//create components and put them in the frame
-		frame.getContentPane().add(canvas);
-		canvas.addGLEventListener(new ApplicationWindow());*/
-		
-		//size and display the frame
+		/*JFrame frame = new ApplicationWindow();		
 		frame.pack();
-		frame.setVisible(true);
+		frame.setVisible(true);*/
+		SwingUtilities.invokeLater(new Runnable() {
+	         @Override
+	         public void run() {
+	            new ApplicationWindow();  // run the constructor
+	         }
+	      });
 	}
 	
 	public void actionPerformed(ActionEvent e){
@@ -301,13 +293,38 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 		
 		//create panel for map display
 		mapPane = new JPanel();
+		// Create the OpenGL rendering canvas
+        GLJPanel canvas = new MapCanvas();
+        //canvas.setMinimumSize(new Dimension(200, 200));
+ 
+        // Create a animator that drives canvas' display() at the specified FPS.
+        final FPSAnimator animator = new FPSAnimator(canvas, 60, true);
+ 
+        // Create the top-level container frame
+        mapPane.add(canvas,"Center");
+        this.addWindowListener(new WindowAdapter() {
+           @Override
+           public void windowClosing(WindowEvent e) {
+              // Use a dedicate thread to run the stop() to ensure that the
+              // animator stops before program exits.
+              new Thread() {
+                 @Override
+                 public void run() {
+                    if (animator.isStarted()) animator.stop();
+                    System.exit(0);
+                 }
+              }.start();
+           }
+        });
+        animator.start(); // start the animation loop
 		
 		//create the split pane that will display the map and the log
 		mainView = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-				mapPane,logPane);
+				canvas,logPane);
 		mainView.setDividerLocation(g_width-275); //log is smaller size than map
 		mainView.setResizeWeight(1.0); //make sure only map gets resized when frame gets resized
 		mainWindow.add(mainView,"Center");
+
 		mainWindow.validate();
 	}
 	
