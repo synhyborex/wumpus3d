@@ -48,6 +48,14 @@ public abstract class Agent extends Thread {
 	public static final int MAYBE = 8;
 	public static final int YES = 9;
 	
+	//movement and search costs
+	public static final int MOVE_COST = 20;
+	public static final int TURN_COST = 10;
+	public static final int HINT_COST = 25;
+	public static final int ARROW_COST = 5;
+	public static final int GOLD_REWARD = 1000;
+	public static final int MAX_POINTS = 20000;
+	
 	/**
 	 * The grid on which the <code>Agent</code> is operating
 	 */
@@ -96,42 +104,31 @@ public abstract class Agent extends Thread {
 	 */
 	private int movementCost;
 	
-	/**
-	 * What it has cost the <code>Fairy</code> so far to move around the world
-	 */
-	private int searchCost;
-	
 	public Agent(){
-		//grid = g;
 		grid = Grid.getInstance();
 		fairy = null;
 		fringe = new Fringe();
-		//startNode = start;
 		startNode = new Node(0,0);
 		currentNode = startNode;
 		currentNodeStatus = SAFE;
 		HEADING = EAST;
 		goalsSoFar = 0;
 		lifePoints = 100;
-		
-		//put Agent on Grid
-		/*grid.addToEvaluated(currentNode);
-		grid.setNodeType(currentNode.getX(),currentNode.getY(),Grid.AGENT,true);
-		grid.setAgentLocation(currentNode);*/
+		movementCost = 0;
 	}
 	
-	public void secretReset(){
+	public void privateReset(){
 		if(MapLoader.isSearchMap())
 			fairy = new Fairy(grid,startNode);
 		else fairy = null;
 		fringe = new Fringe();
 		currentNodeStatus = SAFE;
+		currentNode = startNode;
 		HEADING = EAST;
 		goalsSoFar = 0;
 		lifePoints = 100;
-		/*grid.setNodeType(currentNode.getX(),currentNode.getY(),Grid.AGENT,false); //Agent has moved from this spot
-		currentNode = startNode;
-		grid.setNodeType(currentNode.getX(),currentNode.getY(),Grid.AGENT,true); //Agent is now here*/
+		grid = Grid.getInstance();
+		reset(); // the student's reset
 	}
 	
 	public void setStartLocation(Node n){
@@ -149,8 +146,6 @@ public abstract class Agent extends Thread {
 		else nextStep();
 		
 		//end of method
-		//if(currentNode.hasGoal())
-			//goalsSoFar++;
 		if(goalsSoFar == grid.getNumGoals())
 			gameOverSuccess();
 	}
@@ -185,6 +180,7 @@ public abstract class Agent extends Thread {
 	 * @return the value of what the arrow hit
 	 */
 	public int fireArrow(int direction){
+		movementCost += ARROW_COST;
 		Node arrowPos = currentNode;
 		int addToX, addToY;
 		switch(direction){
@@ -235,6 +231,7 @@ public abstract class Agent extends Thread {
 	 * @return the value of what is occupying the <code>Node</code> other than the <code>Agent</code>, or SAFE if the Agent is alone
 	 */
 	public int moveForward(){
+		movementCost += MOVE_COST;
 		try{
 			sleep(ApplicationWindow.CURRENT_DELAY);
 		}
@@ -288,6 +285,14 @@ public abstract class Agent extends Thread {
 	 * @param heading the direction to face the <code>Agent</code>
 	 */
 	public void turnTo(int heading){
+		//opposite direction
+		if(Math.abs(HEADING - heading) == 2)
+			movementCost += TURN_COST*2;
+		//make sure not the same direction
+		else if(HEADING - heading != 0)
+			movementCost += TURN_COST;
+		
+		//update direction
 		HEADING = heading;
 	}
 	
@@ -295,6 +300,7 @@ public abstract class Agent extends Thread {
 	 * Faces the <code>Agent</code> to the right of its current heading
 	 */
 	public void turnRight(){
+		movementCost += TURN_COST;
 		if(HEADING == WEST)
 			HEADING = NORTH;
 		else HEADING++;
@@ -311,6 +317,7 @@ public abstract class Agent extends Thread {
 	 * Faces the <code>Agent</code> to the left of its current heading
 	 */
 	public void turnLeft(){
+		movementCost += TURN_COST;
 		if(HEADING == NORTH)
 			HEADING = WEST;
 		else HEADING--;
@@ -363,6 +370,7 @@ public abstract class Agent extends Thread {
 	 * @return the distance to the closest goal from the <code>Agent</code>
 	 */
 	public int getDistanceToGold(){
+		movementCost += HINT_COST;
 		return grid.distanceToClosestGoal(currentNode);
 	}
 	
@@ -375,6 +383,7 @@ public abstract class Agent extends Thread {
 	 * @return the distance to the closest goal from the given <code>Node</code>
 	 */
 	public int getDistanceToGold(Node node){
+		movementCost += HINT_COST;
 		return grid.distanceToClosestGoal(node);
 	}
 	
@@ -383,6 +392,7 @@ public abstract class Agent extends Thread {
 	 * @return the direction of the closest goal from the location of the <code>Agent</code>
 	 */
 	public int getDirectionOfGold(){
+		movementCost += HINT_COST;
 		return grid.directionOfClosestGoal(currentNode);
 	}
 	
@@ -391,6 +401,7 @@ public abstract class Agent extends Thread {
 	 * @return the direction of the closest goal from the location of the given <code>Node</code>
 	 */
 	public int getDirectionOfGold(Node node){
+		movementCost += HINT_COST;
 		return grid.directionOfClosestGoal(node);
 	}
 	
@@ -716,23 +727,23 @@ public abstract class Agent extends Thread {
 	}
 	
 	/**
-	 * NEEDS TO BE IMPLEMENTED.
-	 * @return
+	 * Will return the total movement cost up to this point.
+	 * @return a value that is determined by how many moves have been made
 	 */
 	public int getMovementCost(){
-		return 0;
+		return movementCost;
 	}
 	
 	/**
-	 * NEEDS TO BE IMPLEMENTED.
-	 * @return
+	 * Will return the total search cost up to this point.
+	 * @return a value that is determined by how many moves have been made by the <code>Fairy</code>
 	 */
 	public int getSearchCost(){
-		return 0;
+		return fairy.getSearchCost();
 	}
 	
 	/**
-	 * NEEDS TO BE IMPLEMENTED.
+	 * Returns the current life points of the <code>Agent</code>
 	 * @return
 	 */
 	public int getLifePoints(){
@@ -751,8 +762,10 @@ public abstract class Agent extends Thread {
 	 * NEEDS TO BE IMPLEMENTED.
 	 * @return
 	 */
-	private int getPerformanceValue(){
-		return 0;
+	public int getPerformanceValue(){
+		if(fairy != null)
+			return MAX_POINTS - movementCost - fairy.getSearchCost();
+		else return MAX_POINTS - movementCost;
 	}
 	
 	/**

@@ -225,7 +225,19 @@ public class MapCanvas extends GLJPanel implements GLEventListener {
 	}
    
 	private void drawFairy(GLAutoDrawable drawable, Node mapNode) {
-		// TODO Auto-generated method stub
+		// Get the OpenGL graphics context
+		GL2 gl = drawable.getGL().getGL2();
+		gl.glPushMatrix();
+		gl.glColor3f(0.0f, 0.4f, 0.6f);
+	    gl.glLoadIdentity(); // reset the current model-view matrix
+	    gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); //translate to location on map
+		GLUquadric quad = glu.gluNewQuadric();
+		glu.gluQuadricDrawStyle(quad, GLU.GLU_FILL);
+        glu.gluQuadricNormals(quad, GLU.GLU_FLAT);
+        glu.gluQuadricOrientation(quad, GLU.GLU_OUTSIDE);
+		glu.gluSphere(quad, 0.43, 10, 15);
+		glu.gluDeleteQuadric(quad);	
+		gl.glPopMatrix();
 		
 	}
 
@@ -233,7 +245,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener {
 		// Get the OpenGL graphics context
 		GL2 gl = drawable.getGL().getGL2();
 		gl.glPushMatrix();
-		//gl.glColor3f(0.5f, 0.0f, 0.7f); // green
+		gl.glColor3f(0.5f, 0.0f, 0.7f);
 	    gl.glLoadIdentity();                // reset the current model-view matrix
 	    gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); //translate to location on map
 		GLUquadric quad = glu.gluNewQuadric();
@@ -271,7 +283,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener {
 	      // Binds this texture to the current GL context.
 	      texture.bind(gl);  // same as gl.glBindTexture(texture.getTarget(), texture.getTextureObject());
 	      
-	      gl.glColor3f(0.7f, 0.0f, 0.0f); // green
+	      gl.glColor3f(0.7f, 0.0f, 0.0f);
 	      gl.glLoadIdentity();                // reset the current model-view matrix
 	      gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); //translate to location on map
 	      //gl.glRotatef(angleCube, 1.0f, 1.0f, 1.0f); // rotate about the x, y and z-axes

@@ -11,6 +11,8 @@ public class Fairy {
 	public static final int HIT_PIT = 4;
 	public static final int GOAL_FOUND = 5;
 	
+	public static final int SEARCH_COST = 1;
+	
 	/**
 	 * The grid on which the <code>Fairy</code> is operating
 	 */
@@ -25,6 +27,11 @@ public class Fairy {
 	 * The Node the <code>Fairy</code> is currently occupying
 	 */
 	protected Node currentNode;
+	
+	/**
+	 * The total cost of searching.
+	 */
+	protected int searchCost;
 
 	public Fairy(Grid g, Node start) {
 		grid = g;
@@ -73,6 +80,8 @@ public class Fairy {
 		grid.setNodeType(currentNode.getX(),currentNode.getY(),Grid.FAIRY,true); //Fairy is now here
 		grid.addToEvaluated(loc);
 		
+		searchCost += SEARCH_COST; //update search cost
+		
 		return newNodeStatus();
 	}
 	
@@ -110,7 +119,7 @@ public class Fairy {
 	}
 	
 	public int getSearchCost(){
-		return 0;
+		return searchCost;
 	}
 
 }

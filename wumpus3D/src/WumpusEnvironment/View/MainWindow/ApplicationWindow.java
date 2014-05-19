@@ -205,7 +205,6 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 	        int result = mapChooser.showOpenDialog(this);
 	        if(result == JFileChooser.APPROVE_OPTION){
 	        	grid = MapLoader.loadMapFromFile(mapChooser.getSelectedFile());
-	        	//grid.setCleanInitialGrid();
 	        	showMap(MapLoader.isSearchMap());
 	        }
 		}
@@ -222,18 +221,26 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 			disableButtons(new JButton[]{stepButton,autoStepButton});
 			autoRun = true;
 			for(;;)
-				if(autoRun)
+				if(autoRun){
 					nextStep();
+				}
 				else break;
 		}
 		else if(source.equals(resetButton)){
 			autoRun = false;
-			agent.secretReset();
-			grid = grid.getStartGrid();
-			agent = startAgent;
-			grid = startGrid;
+			
+			//set fresh grid
+			grid = MapLoader.loadMapFromFile(mapChooser.getSelectedFile());
+			
+			//set fresh agent
+			agent.privateReset();
+			
+			//update buttons
 			stopButton.setEnabled(false);
 			enableButtons(new JButton[]{stepButton,autoStepButton});
+			
+			//set fresh logger
+			Logger.clear();
 			Logger.generateLogEntry(agent,grid);
 		}
     }
@@ -324,6 +331,7 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 		
 		//enable movement buttons
 		enableButtons(new JButton[]{stepButton,autoStepButton,resetButton});
+		stopButton.setEnabled(false);
 		
 		// Create the OpenGL rendering canvas
         GLJPanel canvas = new MapCanvas();
