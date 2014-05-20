@@ -21,9 +21,11 @@ public class Grid {
 	protected int height; //the vertical number of Nodes
 	protected int numGoals; //the number of goal Nodes on the map
 	protected boolean solved; //whether or not the map has been solved
+	protected int learningCount; //whether or not the map will test learning
 	protected static Node[][] grid; //the map we're operating on
 	protected static Node[] goalLocations; //the locations of the goals on the map
 	protected static Node agentLocation; //the location of the Agent on the map
+	protected static Node agentStartLocation; //the location of the Agent at the initialization of the map
 	
 	//singleton
 	private static Grid instance = new Grid();
@@ -32,10 +34,35 @@ public class Grid {
 		width = 1;
 		height = 1;
 		numGoals = 0;
+		learningCount = 0;
 	}
 	
 	private Grid(Node[][] grid){
 		this.grid = grid;
+	}
+	
+	public void learningReset(){
+		//move agent back to start
+		agentLocation = agentStartLocation;
+		agentLocation.hasAgent = true;
+		
+		//bring dead back to life
+		for(int i = 0; i < height; i++){
+			for(int j = 0; j < width; j++){
+				if(grid[i][j].wumpusStatus == Node.DEAD)
+					grid[i][j].wumpusStatus = Node.ALIVE;
+				if(grid[i][j].minionStatus == Node.DEAD)
+					grid[i][j].minionStatus = Node.ALIVE;
+				
+				//set goals again
+				for(int k = 0; k < goalLocations.length; k++){
+					if(i == goalLocations[k].y && j == goalLocations[k].x){
+						grid[i][j].hasGoal = true;
+					}
+				}
+			}
+		}
+		
 	}
 	
 	public static Grid getInstance(){return instance;}
@@ -58,11 +85,12 @@ public class Grid {
 	 * @param height height of the grid
 	 * @param numGoals the number of goals on the grid
 	 */
-	public void gridInit(int width, int height, int numGoals){
+	public void gridInit(int width, int height, int numGoals, int learning){
 		this.width = width;
 		this.height = height;
 		this.numGoals = numGoals;
-		setSolved(false);
+		this.learningCount = learning;
+		this.solved = false;
 		
 		//initialize grid
 		grid = new Node[height][width];
@@ -87,6 +115,7 @@ public class Grid {
 		
 		//initialize location of Agent
 		agentLocation = new Node(0,0);
+		agentStartLocation = new Node(0,0);
 	}
 	
 	/**
@@ -272,13 +301,17 @@ public class Grid {
 				grid[x][y].isWall = b;
 				break;
 			case WUMPUS:
-				grid[x][y].hasWumpus = b;
+				if(grid[x][y].hasWumpus)
+					grid[x][y].wumpusStatus = Node.DEAD;
+				else grid[x][y].hasWumpus = b;
 				break;
 			case PIT:
 				grid[x][y].hasPit = b;
 				break;
 			case MINION:
-				grid[x][y].hasMinion = b;
+				if(grid[x][y].hasMinion)
+					grid[x][y].minionStatus = Node.DEAD;
+				else grid[x][y].hasMinion = b;
 				break;
 			case AGENT:
 				grid[x][y].hasAgent = b;
@@ -293,10 +326,24 @@ public class Grid {
 	}
 	
 	/**
-	 * Sets whether or not the map has been solved
-	 * @param solved if this is <code>true</code>, then the map will be set to solved, and vice versa
+	 * Will set the <code>Grid</code> to solved if there are no learning loops left.
+	 * @return <code>true</code> if the Grid has been set to solved, <code>false</code> otherwise
 	 */
-	public void setSolved(boolean solved){this.solved = solved;}
+	public boolean trySetSolved(){
+		if(learningCount == 0){ //no more loops to repeat
+			this.solved = true;
+			return true;
+		}
+		else {
+			learningCount--; //otherwise there is now one less
+			return false;
+		}
+	}
+	
+	/**
+	 * Sets the <code>Grid</code> to not-solved.
+	 */
+	public void setNotSolved(){solved = false;}
 	
 	/**
 	 * Sets the location of the <code>Agent</code> to the given <code>Node</code>
@@ -304,6 +351,10 @@ public class Grid {
 	 */
 	public void setAgentLocation(Node loc){
 		agentLocation = loc;
+	}
+	
+	public void setAgentStartLocation(Node loc){
+		agentStartLocation = loc;
 	}
 	
 	/**

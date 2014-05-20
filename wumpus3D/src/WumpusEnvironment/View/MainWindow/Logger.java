@@ -96,4 +96,10 @@ public class Logger extends JPanel implements ActionListener {
 	public static void clear(){
 		log.setText(null);
 	}
+	
+	public static void printMapStart(){
+		writeToLog(logSeparator +
+				" * Map start *\r\n" +
+				logSeparator);
+	}
 }

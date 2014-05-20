@@ -37,6 +37,7 @@ public class Fairy {
 		grid = g;
 		currentNode = start;
 		goalsSoFar = 0;
+		searchCost = 0;
 		
 		//put Fairy on Grid
 		grid.setNodeType(currentNode.getX(),currentNode.getY(),Grid.FAIRY,true);

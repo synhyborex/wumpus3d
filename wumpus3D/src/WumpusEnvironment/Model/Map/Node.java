@@ -23,6 +23,13 @@ public class Node implements Comparable<Node>{
 	//belief variables
 	protected int[] beliefs;
 	
+	//creature statuses
+	public static final int ALIVE = 0;
+	public static final int DEAD = 1;
+	public static final int NONE_HERE = 2;
+	protected int wumpusStatus;
+	protected int minionStatus;
+	
 	/**
 	 * Creates a new empty Node
 	 * @param x the x-location of the Node in the Grid
@@ -39,6 +46,8 @@ public class Node implements Comparable<Node>{
 		hasAgent = false;
 		hasFairy = false;
 		evaluated = false;
+		wumpusStatus = NONE_HERE;
+		minionStatus = NONE_HERE;
 		beliefs = new int[6];
 		for(int i = 0; i < beliefs.length; i++)
 			beliefs[i] = 6; //Agent.UNKNOWN
@@ -71,6 +80,8 @@ public class Node implements Comparable<Node>{
 	public int getBelief(int index){return beliefs[index];}
 	public void setBelief(int index, int value){beliefs[index] = value;}
 	public void setAsEvaluated(){this.evaluated = true;}
+	public int getWumpusStatus(){return wumpusStatus;}
+	public int getMinionStatus(){return minionStatus;}
 	public boolean hasGoal(){return hasGoal;}
 	public boolean isWall(){return isWall;}
 	public boolean hasWumpus(){return hasWumpus;}

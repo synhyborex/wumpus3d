@@ -241,6 +241,7 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 			
 			//set fresh logger
 			Logger.clear();
+			Logger.printMapStart();
 			Logger.generateLogEntry(agent,grid);
 		}
     }
@@ -315,18 +316,15 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 	}
 	
 	protected void showMap(boolean fairy){
-		//agent.secretReset();
-		//agent = startAgent;
-		//grid = startGrid;
+		autoRun = false;
+		agent.privateReset();
 		agent.setStartLocation(grid.getAgentLocation());
 		if(fairy){
 			agent.setFairy(new Fairy(grid,grid.getAgentLocation()));
 		}
 		//print start of log
 		Logger.clear(); //clear any text that was there before
-		Logger.writeToLog(Logger.logSeparator +
-				" * Map start *\r\n" +
-				Logger.logSeparator);
+		Logger.printMapStart();
 		Logger.generateLogEntry(agent,grid);
 		
 		//enable movement buttons
@@ -334,14 +332,17 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 		stopButton.setEnabled(false);
 		
 		// Create the OpenGL rendering canvas
-        GLJPanel canvas = new MapCanvas();
+        GLJPanel mapView = new MapCanvas(MapCanvas.MAP_VIEW);
+        //GLJPanel agentView = new MapCanvas(MapCanvas.AGENT_VIEW);
         //canvas.setMinimumSize(new Dimension(200, 200));
  
         // Create a animator that drives canvas' display() at the specified FPS.
-        final FPSAnimator animator = new FPSAnimator(canvas, 60, true);
+        final FPSAnimator mapAnimator = new FPSAnimator(mapView, 60, true);
+        //final FPSAnimator agentMapAnimator = new FPSAnimator(agentView, 60, true);
  
         // Create the top-level container frame
-        mapPane.add(canvas,"Center");
+        mapPane.add(mapView,"North");
+        //mapPane.add(agentView,"South");
         this.addWindowListener(new WindowAdapter() {
            @Override
            public void windowClosing(WindowEvent e) {
@@ -350,14 +351,16 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
               new Thread() {
                  @Override
                  public void run() {
-                    if (animator.isStarted()) animator.stop();
+                    if (mapAnimator.isStarted()) mapAnimator.stop();
+                    //if (agentMapAnimator.isStarted()) agentMapAnimator.stop();
                     System.exit(0);
                  }
               }.start();
            }
         });
-        animator.start(); // start the animation loop
-		mainView.setLeftComponent(canvas);
+        mapAnimator.start(); // start the animation loop
+        //agentMapAnimator.start();
+		mainView.setLeftComponent(mapView);
 	}
 	
 	protected void nextStep(){

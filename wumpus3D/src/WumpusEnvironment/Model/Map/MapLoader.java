@@ -22,7 +22,7 @@ public class MapLoader {
 		//if map has only one square, there was a problem with the map file
 		int gridWidth = 1, gridHeight = 1, gridNumGoals = 0;
 		Grid grid = Grid.getInstance();
-		grid.gridInit(gridWidth,gridHeight,gridNumGoals);
+		grid.gridInit(gridWidth,gridHeight,gridNumGoals,0);
 		
 		//Agent initialization variables
 		//if Agent spawns at (0,0), there was a problem with the map file
@@ -37,11 +37,22 @@ public class MapLoader {
 			gridWidth = sc.nextInt(); //first number is width
 			gridHeight = sc.nextInt(); //second number is height
 			gridNumGoals = sc.nextInt(); //third number is number of goals on the map
-			sc.nextLine(); //throw away rest of line
+			
+			//see if there are any flags
+			Scanner flags = new Scanner(sc.nextLine().trim());
+			int learningCount = 0; //how many times to repeat the map
+			while(flags.hasNext()){ //there are flags
+				String flag = flags.next();
+				if(flag.equals("fairy"))
+					fairy = true;
+				if(flag.equals("learning"))
+					learningCount = flags.nextInt();
+			}
+			flags.close();
 			
 			//create the grid so we can modify Nodes
 			//grid = Grid.getInstance();
-			grid.gridInit(gridWidth+2,gridHeight+2,gridNumGoals);
+			grid.gridInit(gridWidth+2,gridHeight+2,gridNumGoals,learningCount);
 			for(int i = 0; i < gridHeight; i++){
 				String nextRow = sc.nextLine();
 				for(int j = 0; j < gridWidth; j++){
@@ -50,11 +61,11 @@ public class MapLoader {
 							agentStartX = j+1;
 							agentStartY = i+1;
 							break;
-						case 'F':
+						/*case 'F':
 							agentStartX = j+1;
 							agentStartY = i+1;
 							fairy = true;
-							break;
+							break;*/
 						case 'X':
 							grid.setNodeType(j+1,i+1,Grid.WALL,true);
 							break;

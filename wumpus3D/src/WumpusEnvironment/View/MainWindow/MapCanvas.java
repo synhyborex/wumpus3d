@@ -21,6 +21,9 @@ import static javax.media.opengl.GL2.*; // GL2 constants
  */
 @SuppressWarnings("serial")
 public class MapCanvas extends GLJPanel implements GLEventListener {
+	public static final int MAP_VIEW = 0;
+	public static final int AGENT_VIEW = 0;
+	private int view;
    private GLU glu;  // for the GL Utility
    private float anglePyramid = 0;    // rotational angle in degree for pyramid
    private float angleCube = 0;       // rotational angle in degree for cube
@@ -37,9 +40,10 @@ public class MapCanvas extends GLJPanel implements GLEventListener {
    private float textureTop, textureBottom, textureLeft, textureRight;
  
    /** Constructor to setup the GUI for this Component */
-   public MapCanvas() {
+   public MapCanvas(int view) {
       this.addGLEventListener(this);
       map = Grid.getInstance();
+      this.view = view;
    }
  
    // ------ Implement methods declared in GLEventListener ------
@@ -200,27 +204,50 @@ public class MapCanvas extends GLJPanel implements GLEventListener {
 	   for(int i = 0; i < map.getHeight(); i++){
 		   for(int j = 0; j < map.getWidth(); j++){
 			   Node mapNode = map.getNode(j,i);
-			    if(mapNode.hasGoal())
-			    	drawGoal(drawable,mapNode);
-				else if(mapNode.isWall())
-					drawWall(drawable,mapNode);
-				else if(mapNode.hasWumpus())
-					drawWumpus(drawable,mapNode);
-				else if(mapNode.hasPit())
-					drawPit(drawable,mapNode);
-				else if(mapNode.hasMinion())
-					drawMinion(drawable,mapNode);
-				else if(mapNode.hasAgent())
-					drawAgent(drawable,mapNode);
-				else if(mapNode.hasFairy())
-					drawFairy(drawable,mapNode);
-				else drawFloor(drawable,mapNode);
+			   /*if(view == AGENT_VIEW){
+				   if(mapNode.isEvaluated()){
+					    drawNode(drawable,mapNode);
+				   }
+			   }
+			   else if(view == MAP_VIEW){
+				   drawNode(drawable,mapNode);
+			   }*/
+			   drawNode(drawable,mapNode);
 		   }
 	   }
    }
    
+   private void drawNode(GLAutoDrawable drawable, Node mapNode){
+	   if(mapNode.hasGoal())
+	    	drawGoal(drawable,mapNode);
+		else if(mapNode.isWall())
+			drawWall(drawable,mapNode);
+		else if(mapNode.hasWumpus())
+			drawWumpus(drawable,mapNode);
+		else if(mapNode.hasPit())
+			drawPit(drawable,mapNode);
+		else if(mapNode.hasMinion())
+			drawMinion(drawable,mapNode);
+		else if(mapNode.hasAgent())
+			drawAgent(drawable,mapNode);
+		else if(mapNode.hasFairy())
+			drawFairy(drawable,mapNode);
+		else drawFloor(drawable,mapNode);
+   }
+   
    private void drawFloor(GLAutoDrawable drawable, Node mapNode) {
-		// TODO Auto-generated method stub
+	   GL2 gl = drawable.getGL().getGL2();
+	   gl.glColor3f(0.7f, 0.0f, 0.5f);
+	   gl.glPushMatrix();
+	   gl.glTexCoord2f(textureRight, textureTop);
+	   gl.glVertex3f(-0.5f, -0.5f, -0.5f);
+	   gl.glTexCoord2f(textureLeft, textureTop);
+	   gl.glVertex3f(0.5f, -0.5f, -0.5f);
+	   gl.glTexCoord2f(textureLeft, textureBottom);
+	   gl.glVertex3f(0.5f, -0.5f, 0.5f);
+	   gl.glTexCoord2f(textureRight, textureBottom);
+	   gl.glVertex3f(-0.5f, -0.5f, 0.5f);
+	   gl.glPopMatrix();
 		
 	}
    
@@ -258,17 +285,51 @@ public class MapCanvas extends GLJPanel implements GLEventListener {
 	}
 	
 	private void drawMinion(GLAutoDrawable drawable, Node mapNode) {
-		// TODO Auto-generated method stub
-		
+		// Get the OpenGL graphics context
+		GL2 gl = drawable.getGL().getGL2();
+		gl.glPushMatrix();
+		gl.glColor3f(0.0f, 0.8f, 0.0f);
+	    gl.glLoadIdentity();                // reset the current model-view matrix
+	    gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); //translate to location on map
+		GLUquadric quad = glu.gluNewQuadric();
+		glu.gluQuadricDrawStyle(quad, GLU.GLU_FILL);
+        glu.gluQuadricNormals(quad, GLU.GLU_FLAT);
+        glu.gluQuadricOrientation(quad, GLU.GLU_OUTSIDE);
+		glu.gluSphere(quad, 0.43, 10, 15);
+		glu.gluDeleteQuadric(quad);	
+		gl.glPopMatrix();		
 	}
 	
 	private void drawPit(GLAutoDrawable drawable, Node mapNode) {
-		// TODO Auto-generated method stub
+	   GL2 gl = drawable.getGL().getGL2();
+	   gl.glColor3f(0.0f, 0.0f, 0.0f);
+	   gl.glPushMatrix();
+	   gl.glTexCoord2f(textureRight, textureTop);
+	   gl.glVertex3f(-0.5f, -0.5f, -0.5f);
+	   gl.glTexCoord2f(textureLeft, textureTop);
+	   gl.glVertex3f(0.5f, -0.5f, -0.5f);
+	   gl.glTexCoord2f(textureLeft, textureBottom);
+	   gl.glVertex3f(0.5f, -0.5f, 0.5f);
+	   gl.glTexCoord2f(textureRight, textureBottom);
+	   gl.glVertex3f(-0.5f, -0.5f, 0.5f);
+	   gl.glPopMatrix();
 		
 	}
 	
 	private void drawWumpus(GLAutoDrawable drawable, Node mapNode) {
-		// TODO Auto-generated method stub
+		// Get the OpenGL graphics context
+		GL2 gl = drawable.getGL().getGL2();
+		gl.glPushMatrix();
+		gl.glColor3f(0.7f, 0.0f, 0.0f);
+	    gl.glLoadIdentity();                // reset the current model-view matrix
+	    gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); //translate to location on map
+		GLUquadric quad = glu.gluNewQuadric();
+		glu.gluQuadricDrawStyle(quad, GLU.GLU_FILL);
+        glu.gluQuadricNormals(quad, GLU.GLU_FLAT);
+        glu.gluQuadricOrientation(quad, GLU.GLU_OUTSIDE);
+		glu.gluSphere(quad, 0.43, 10, 15);
+		glu.gluDeleteQuadric(quad);	
+		gl.glPopMatrix();
 		
 	}
 	

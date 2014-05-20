@@ -127,13 +127,27 @@ public abstract class Agent extends Thread {
 		HEADING = EAST;
 		goalsSoFar = 0;
 		lifePoints = 100;
+		movementCost = 0;
 		grid = Grid.getInstance();
 		reset(); // the student's reset
+	}
+	
+	public void learningReset(){
+		if(MapLoader.isSearchMap())
+			fairy = new Fairy(grid,startNode);
+		else fairy = null;
+		currentNodeStatus = SAFE;
+		currentNode = startNode;
+		HEADING = EAST;
+		goalsSoFar = 0;
+		lifePoints = 100;
+		grid = Grid.getInstance();
 	}
 	
 	public void setStartLocation(Node n){
 		startNode = grid.getNode(n.getX(),n.getY());
 		currentNode = startNode;
+		grid.setAgentStartLocation(grid.getNode(n.getX(),n.getY()));
 	}
 	
 	/**
@@ -171,7 +185,10 @@ public abstract class Agent extends Thread {
 	 * Defines the system behavior when all objectives have been completed
 	 */
 	private void gameOverSuccess(){
-		grid.setSolved(true);
+		if(!grid.trySetSolved()){
+			grid.learningReset();
+			learningReset();
+		}
 	}
 	
 	/**
