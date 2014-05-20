@@ -31,13 +31,30 @@ public class MapCanvas extends GLJPanel implements GLEventListener {
    private float speedCube = -1.5f;   // rotational speed for cube
    private Grid map;
    
-   // Texture
-   private Texture texture;
-   private String textureFileName = "images/wall.gif";
-   private String textureFileType = ".gif";
+   // Textures
+   //wall texture
+   private Texture textureWall;
+   private String textureWallFileName = "images/wall.gif";
+   private String textureWallFileType = ".gif";
 	// Texture image flips vertically. Shall use TextureCoords class to retrieve the
    // top, bottom, left and right coordinates.
-   private float textureTop, textureBottom, textureLeft, textureRight;
+   private float textureWallTop, textureWallBottom, textureWallLeft, textureWallRight;
+   
+   //floor texture
+   private Texture textureFloor;
+   private String textureFloorFileName = "images/floor.gif";
+   private String textureFloorFileType = ".gif";
+   // Texture image flips vertically. Shall use TextureCoords class to retrieve the
+   // top, bottom, left and right coordinates.
+   private float textureFloorTop, textureFloorBottom, textureFloorLeft, textureFloorRight;
+   
+   //pit texture
+   private Texture texturePit;
+   private String texturePitFileName = "images/pit.gif";
+   private String texturePitFileType = ".gif";
+   // Texture image flips vertically. Shall use TextureCoords class to retrieve the
+   // top, bottom, left and right coordinates.
+   private float texturePitTop, texturePitBottom, texturePitLeft, texturePitRight;
  
    /** Constructor to setup the GUI for this Component */
    public MapCanvas(int view) {
@@ -64,13 +81,13 @@ public class MapCanvas extends GLJPanel implements GLEventListener {
       gl.glShadeModel(GL_SMOOTH); // blends colors nicely, and smoothes out lighting
  
       // ----- Your OpenGL initialization code here -----
-      // Load texture from image
+      // Load wall texture from image
       try {
          // Create a OpenGL Texture object from (URL, mipmap, file suffix)
          // Use URL so that can read from JAR and disk file.
-         texture = TextureIO.newTexture(
-               getClass().getClassLoader().getResource(textureFileName), // relative to project root 
-               false, textureFileType);
+         textureWall = TextureIO.newTexture(
+               getClass().getClassLoader().getResource(textureWallFileName), // relative to project root 
+               false, textureWallFileType);
 
          // Use linear filter for texture if image is larger than the original texture
          gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -79,11 +96,64 @@ public class MapCanvas extends GLJPanel implements GLEventListener {
 
          // Texture image flips vertically. Shall use TextureCoords class to retrieve
          // the top, bottom, left and right coordinates, instead of using 0.0f and 1.0f.
-         TextureCoords textureCoords = texture.getImageTexCoords();
-         textureTop = textureCoords.top();
-         textureBottom = textureCoords.bottom();
-         textureLeft = textureCoords.left();
-         textureRight = textureCoords.right();
+         TextureCoords textureCoords = textureWall.getImageTexCoords();
+         textureWallTop = textureCoords.top();
+         textureWallBottom = textureCoords.bottom();
+         textureWallLeft = textureCoords.left();
+         textureWallRight = textureCoords.right();
+      } catch (GLException e) {
+         e.printStackTrace();
+      } catch (IOException e) {
+         e.printStackTrace();
+      }
+      
+      // Load floor texture from image
+      try {
+         // Create a OpenGL Texture object from (URL, mipmap, file suffix)
+         // Use URL so that can read from JAR and disk file.
+         textureFloor = TextureIO.newTexture(
+               getClass().getClassLoader().getResource(textureFloorFileName), // relative to project root 
+               false, textureFloorFileType);
+
+         // Use linear filter for texture if image is larger than the original texture
+         gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+         // Use linear filter for texture if image is smaller than the original texture
+         gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+         // Texture image flips vertically. Shall use TextureCoords class to retrieve
+         // the top, bottom, left and right coordinates, instead of using 0.0f and 1.0f.
+         TextureCoords textureCoords = textureFloor.getImageTexCoords();
+         textureFloorTop = textureCoords.top();
+         textureFloorBottom = textureCoords.bottom();
+         textureFloorLeft = textureCoords.left();
+         textureFloorRight = textureCoords.right();
+      } catch (GLException e) {
+         e.printStackTrace();
+      } catch (IOException e) {
+         e.printStackTrace();
+      }
+      
+      // Load pit texture from image
+      try {
+         // Create a OpenGL Texture object from (URL, mipmap, file suffix)
+         // Use URL so that can read from JAR and disk file.
+         texturePit = TextureIO.newTexture(
+               getClass().getClassLoader().getResource(texturePitFileName), // relative to project root 
+               false, texturePitFileType);
+
+         // Use linear filter for texture if image is larger than the original texture
+         gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+         // Use linear filter for texture if image is smaller than the original texture
+         gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+         gl.glGenerateMipmap(GL_TEXTURE_2D);
+
+         // Texture image flips vertically. Shall use TextureCoords class to retrieve
+         // the top, bottom, left and right coordinates, instead of using 0.0f and 1.0f.
+         TextureCoords textureCoords = texturePit.getImageTexCoords();
+         texturePitTop = textureCoords.top();
+         texturePitBottom = textureCoords.bottom();
+         texturePitLeft = textureCoords.left();
+         texturePitRight = textureCoords.right();
       } catch (GLException e) {
          e.printStackTrace();
       } catch (IOException e) {
@@ -204,49 +274,60 @@ public class MapCanvas extends GLJPanel implements GLEventListener {
 	   for(int i = 0; i < map.getHeight(); i++){
 		   for(int j = 0; j < map.getWidth(); j++){
 			   Node mapNode = map.getNode(j,i);
-			   /*if(view == AGENT_VIEW){
-				   if(mapNode.isEvaluated()){
-					    drawNode(drawable,mapNode);
-				   }
-			   }
-			   else if(view == MAP_VIEW){
-				   drawNode(drawable,mapNode);
-			   }*/
 			   drawNode(drawable,mapNode);
 		   }
 	   }
    }
    
    private void drawNode(GLAutoDrawable drawable, Node mapNode){
-	   if(mapNode.hasGoal())
+	    if(mapNode.hasGoal()){
 	    	drawGoal(drawable,mapNode);
-		else if(mapNode.isWall())
+	    	drawFloor(drawable,mapNode);
+	    }
+		else if(mapNode.isWall()){
 			drawWall(drawable,mapNode);
-		else if(mapNode.hasWumpus())
+		}
+		else if(mapNode.hasWumpus()){
 			drawWumpus(drawable,mapNode);
-		else if(mapNode.hasPit())
+			drawFloor(drawable,mapNode);
+		}
+		else if(mapNode.hasPit()){
 			drawPit(drawable,mapNode);
-		else if(mapNode.hasMinion())
+		}
+		else if(mapNode.hasMinion()){
 			drawMinion(drawable,mapNode);
-		else if(mapNode.hasAgent())
+			drawFloor(drawable,mapNode);
+		}
+		else if(mapNode.hasAgent()){
 			drawAgent(drawable,mapNode);
-		else if(mapNode.hasFairy())
+			drawFloor(drawable,mapNode);
+		}
+		else if(mapNode.hasFairy()){
 			drawFairy(drawable,mapNode);
+			drawFloor(drawable,mapNode);
+		}
 		else drawFloor(drawable,mapNode);
    }
    
    private void drawFloor(GLAutoDrawable drawable, Node mapNode) {
 	   GL2 gl = drawable.getGL().getGL2();
-	   gl.glColor3f(0.7f, 0.0f, 0.5f);
+	   textureFloor.enable(gl);
+	   textureFloor.bind(gl);
 	   gl.glPushMatrix();
-	   gl.glTexCoord2f(textureRight, textureTop);
-	   gl.glVertex3f(-0.5f, -0.5f, -0.5f);
-	   gl.glTexCoord2f(textureLeft, textureTop);
-	   gl.glVertex3f(0.5f, -0.5f, -0.5f);
-	   gl.glTexCoord2f(textureLeft, textureBottom);
-	   gl.glVertex3f(0.5f, -0.5f, 0.5f);
-	   gl.glTexCoord2f(textureRight, textureBottom);
-	   gl.glVertex3f(-0.5f, -0.5f, 0.5f);
+	   gl.glLoadIdentity();                // reset the current model-view matrix
+	   gl.glColor3f(1.0f, 1.0f, 1.0f);
+       gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); //translate to location on map
+       gl.glBegin(GL_QUADS); // of the color cube
+	      gl.glTexCoord2f(textureWallLeft, textureWallBottom);
+	      gl.glVertex3f(-0.5f, -0.5f, 0.5f); // bottom-left of the texture and quad
+	      gl.glTexCoord2f(textureWallRight, textureWallBottom);
+	      gl.glVertex3f(0.5f, -0.5f, 0.5f);  // bottom-right of the texture and quad
+	      gl.glTexCoord2f(textureWallRight, textureWallTop);
+	      gl.glVertex3f(0.5f, 0.5f, 0.5f);   // top-right of the texture and quad
+	      gl.glTexCoord2f(textureWallLeft, textureWallTop);
+	      gl.glVertex3f(-0.5f, 0.5f, 0.5f);  // top-left of the texture and quad
+	   gl.glEnd();
+	   textureFloor.disable(gl);
 	   gl.glPopMatrix();
 		
 	}
@@ -302,16 +383,23 @@ public class MapCanvas extends GLJPanel implements GLEventListener {
 	
 	private void drawPit(GLAutoDrawable drawable, Node mapNode) {
 	   GL2 gl = drawable.getGL().getGL2();
-	   gl.glColor3f(0.0f, 0.0f, 0.0f);
+	   texturePit.enable(gl);
+	   texturePit.bind(gl);
 	   gl.glPushMatrix();
-	   gl.glTexCoord2f(textureRight, textureTop);
-	   gl.glVertex3f(-0.5f, -0.5f, -0.5f);
-	   gl.glTexCoord2f(textureLeft, textureTop);
-	   gl.glVertex3f(0.5f, -0.5f, -0.5f);
-	   gl.glTexCoord2f(textureLeft, textureBottom);
-	   gl.glVertex3f(0.5f, -0.5f, 0.5f);
-	   gl.glTexCoord2f(textureRight, textureBottom);
-	   gl.glVertex3f(-0.5f, -0.5f, 0.5f);
+	   gl.glLoadIdentity();                // reset the current model-view matrix
+	   gl.glColor3f(1.0f, 1.0f, 1.0f);
+	   gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); //translate to location on map
+       gl.glBegin(GL_QUADS); // of the color cube
+	      gl.glTexCoord2f(textureWallLeft, textureWallBottom);
+	      gl.glVertex3f(-0.5f, -0.5f, 0.5f); // bottom-left of the texture and quad
+	      gl.glTexCoord2f(textureWallRight, textureWallBottom);
+	      gl.glVertex3f(0.5f, -0.5f, 0.5f);  // bottom-right of the texture and quad
+	      gl.glTexCoord2f(textureWallRight, textureWallTop);
+	      gl.glVertex3f(0.5f, 0.5f, 0.5f);   // top-right of the texture and quad
+	      gl.glTexCoord2f(textureWallLeft, textureWallTop);
+	      gl.glVertex3f(-0.5f, 0.5f, 0.5f);  // top-left of the texture and quad
+	   gl.glEnd();
+	   texturePit.disable(gl);
 	   gl.glPopMatrix();
 		
 	}
@@ -339,10 +427,10 @@ public class MapCanvas extends GLJPanel implements GLEventListener {
 	      gl.glPushMatrix();
 	      
 	      // Enables this texture's target in the current GL context's state.
-	      texture.enable(gl);  // same as gl.glEnable(texture.getTarget());
+	      textureWall.enable(gl);  // same as gl.glEnable(texture.getTarget());
 	      // gl.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_REPLACE);
 	      // Binds this texture to the current GL context.
-	      texture.bind(gl);  // same as gl.glBindTexture(texture.getTarget(), texture.getTextureObject());
+	      textureWall.bind(gl);  // same as gl.glBindTexture(texture.getTarget(), texture.getTextureObject());
 	      
 	      gl.glColor3f(0.7f, 0.0f, 0.0f);
 	      gl.glLoadIdentity();                // reset the current model-view matrix
@@ -351,69 +439,69 @@ public class MapCanvas extends GLJPanel implements GLEventListener {
 	      gl.glBegin(GL_QUADS); // of the color cube
 	 	 
 	      // Front Face
-	      gl.glTexCoord2f(textureLeft, textureBottom);
+	      gl.glTexCoord2f(textureWallLeft, textureWallBottom);
 	      gl.glVertex3f(-0.5f, -0.5f, 0.5f); // bottom-left of the texture and quad
-	      gl.glTexCoord2f(textureRight, textureBottom);
+	      gl.glTexCoord2f(textureWallRight, textureWallBottom);
 	      gl.glVertex3f(0.5f, -0.5f, 0.5f);  // bottom-right of the texture and quad
-	      gl.glTexCoord2f(textureRight, textureTop);
+	      gl.glTexCoord2f(textureWallRight, textureWallTop);
 	      gl.glVertex3f(0.5f, 0.5f, 0.5f);   // top-right of the texture and quad
-	      gl.glTexCoord2f(textureLeft, textureTop);
+	      gl.glTexCoord2f(textureWallLeft, textureWallTop);
 	      gl.glVertex3f(-0.5f, 0.5f, 0.5f);  // top-left of the texture and quad
 
 	      // Back Face
-	      gl.glTexCoord2f(textureRight, textureBottom);
+	      gl.glTexCoord2f(textureWallRight, textureWallBottom);
 	      gl.glVertex3f(-0.5f, -0.5f, -0.5f);
-	      gl.glTexCoord2f(textureRight, textureTop);
+	      gl.glTexCoord2f(textureWallRight, textureWallTop);
 	      gl.glVertex3f(-0.5f, 0.5f, -0.5f);
-	      gl.glTexCoord2f(textureLeft, textureTop);
+	      gl.glTexCoord2f(textureWallLeft, textureWallTop);
 	      gl.glVertex3f(0.5f, 0.5f, -0.5f);
-	      gl.glTexCoord2f(textureLeft, textureBottom);
+	      gl.glTexCoord2f(textureWallLeft, textureWallBottom);
 	      gl.glVertex3f(0.5f, -0.5f, -0.5f);
 	      
 	      // Top Face
-	      gl.glTexCoord2f(textureLeft, textureTop);
+	      gl.glTexCoord2f(textureWallLeft, textureWallTop);
 	      gl.glVertex3f(-0.5f, 0.5f, -0.5f);
-	      gl.glTexCoord2f(textureLeft, textureBottom);
+	      gl.glTexCoord2f(textureWallLeft, textureWallBottom);
 	      gl.glVertex3f(-0.5f, 0.5f, 0.5f);
-	      gl.glTexCoord2f(textureRight, textureBottom);
+	      gl.glTexCoord2f(textureWallRight, textureWallBottom);
 	      gl.glVertex3f(0.5f, 0.5f, 0.5f);
-	      gl.glTexCoord2f(textureRight, textureTop);
+	      gl.glTexCoord2f(textureWallRight, textureWallTop);
 	      gl.glVertex3f(0.5f, 0.5f, -0.5f);
 	      
 	      // Bottom Face
-	      gl.glTexCoord2f(textureRight, textureTop);
+	      gl.glTexCoord2f(textureWallRight, textureWallTop);
 	      gl.glVertex3f(-0.5f, -0.5f, -0.5f);
-	      gl.glTexCoord2f(textureLeft, textureTop);
+	      gl.glTexCoord2f(textureWallLeft, textureWallTop);
 	      gl.glVertex3f(0.5f, -0.5f, -0.5f);
-	      gl.glTexCoord2f(textureLeft, textureBottom);
+	      gl.glTexCoord2f(textureWallLeft, textureWallBottom);
 	      gl.glVertex3f(0.5f, -0.5f, 0.5f);
-	      gl.glTexCoord2f(textureRight, textureBottom);
+	      gl.glTexCoord2f(textureWallRight, textureWallBottom);
 	      gl.glVertex3f(-0.5f, -0.5f, 0.5f);
 	      
 	      // Right face
-	      gl.glTexCoord2f(textureRight, textureBottom);
+	      gl.glTexCoord2f(textureWallRight, textureWallBottom);
 	      gl.glVertex3f(0.5f, -0.5f, -0.5f);
-	      gl.glTexCoord2f(textureRight, textureTop);
+	      gl.glTexCoord2f(textureWallRight, textureWallTop);
 	      gl.glVertex3f(0.5f, 0.5f, -0.5f);
-	      gl.glTexCoord2f(textureLeft, textureTop);
+	      gl.glTexCoord2f(textureWallLeft, textureWallTop);
 	      gl.glVertex3f(0.5f, 0.5f, 0.5f);
-	      gl.glTexCoord2f(textureLeft, textureBottom);
+	      gl.glTexCoord2f(textureWallLeft, textureWallBottom);
 	      gl.glVertex3f(0.5f, -0.5f, 0.5f);
 	      
 	      // Left Face
-	      gl.glTexCoord2f(textureLeft, textureBottom);
+	      gl.glTexCoord2f(textureWallLeft, textureWallBottom);
 	      gl.glVertex3f(-0.5f, -0.5f, -0.5f);
-	      gl.glTexCoord2f(textureRight, textureBottom);
+	      gl.glTexCoord2f(textureWallRight, textureWallBottom);
 	      gl.glVertex3f(-0.5f, -0.5f, 0.5f);
-	      gl.glTexCoord2f(textureRight, textureTop);
+	      gl.glTexCoord2f(textureWallRight, textureWallTop);
 	      gl.glVertex3f(-0.5f, 0.5f, 0.5f);
-	      gl.glTexCoord2f(textureLeft, textureTop);
+	      gl.glTexCoord2f(textureWallLeft, textureWallTop);
 	      gl.glVertex3f(-0.5f, 0.5f, -0.5f);
 	 
 	      gl.glEnd(); // of the color cube
 	      // Disables this texture's target (e.g., GL_TEXTURE_2D) in the current GL
 	      // context's state.
-	      texture.disable(gl);  // same as gl.glDisable(texture.getTarget());
+	      textureWall.disable(gl);  // same as gl.glDisable(texture.getTarget());
 	      gl.glPopMatrix();
 	   }
 	
