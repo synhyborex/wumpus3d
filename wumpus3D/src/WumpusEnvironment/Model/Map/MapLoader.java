@@ -21,6 +21,7 @@ public class MapLoader {
 		//grid initialization variables
 		//if map has only one square, there was a problem with the map file
 		int gridWidth = 1, gridHeight = 1, gridNumGoals = 0;
+		fairy = false; //make sure fairy is not true by default
 		Grid grid = Grid.getInstance();
 		grid.gridInit(gridWidth,gridHeight,gridNumGoals,0);
 		

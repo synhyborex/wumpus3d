@@ -31,6 +31,13 @@ public class MapCanvas extends GLJPanel implements GLEventListener {
    private float speedCube = -1.5f;   // rotational speed for cube
    private Grid map;
    
+   //ambient and diffuse lighting
+   private float lightAmbient[] = {0.2f, 0.2f, 0.2f};  // Ambient Light is 20% white
+   private float lightDiffuse[] = {1.0f, 1.0f, 1.0f};  // Diffuse Light is white
+   
+   // Position is somewhat in front of screen
+   private float lightPosition[] = {0.0f, 0.0f, 2.0f};
+   
    // Textures
    //wall texture
    private Texture textureWall;
@@ -81,12 +88,26 @@ public class MapCanvas extends GLJPanel implements GLEventListener {
    public void init(GLAutoDrawable drawable) {
 	   GL2 gl = drawable.getGL().getGL2();      // get the OpenGL graphics context
       glu = new GLU();                         // get GL Utilities
-      gl.glClearColor(1.0f, 1.0f, 1.0f, 0.0f); // set background (clear) color
+      gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // set background (clear) color
       gl.glClearDepth(1.0f);      // set clear depth value to farthest
       gl.glEnable(GL_DEPTH_TEST); // enables depth testing
       gl.glDepthFunc(GL_LEQUAL);  // the type of depth test to do
       gl.glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // best perspective correction
       gl.glShadeModel(GL_SMOOTH); // blends colors nicely, and smoothes out lighting
+      
+      // Load Light-Parameters Into GL.GL_LIGHT1
+      gl.glLightfv(GL_LIGHT1, GL_AMBIENT, lightAmbient, 0);        
+      gl.glLightfv(GL_LIGHT1, GL_DIFFUSE, lightDiffuse, 0);
+      gl.glLightfv(GL_LIGHT1, GL_POSITION, lightPosition, 0);
+
+      gl.glEnable(GL_LIGHT1);
+      
+      
+      // Set The Texture Generation Mode For S To Sphere Mapping (NEW)
+      gl.glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+      
+      // Set The Texture Generation Mode For T To Sphere Mapping (NEW) 
+      gl.glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP); 
  
       // ----- Your OpenGL initialization code here -----
       // Load wall texture from image
@@ -317,31 +338,30 @@ public class MapCanvas extends GLJPanel implements GLEventListener {
    private void drawNode(GLAutoDrawable drawable, Node mapNode){
 	    if(mapNode.hasGoal()){
 	    	drawGoal(drawable,mapNode);
-	    	drawFloor(drawable,mapNode);
 	    }
-		else if(mapNode.isWall()){
+		if(mapNode.isWall()){
 			drawWall(drawable,mapNode);
 		}
-		else if(mapNode.hasWumpus()){
-			drawWumpus(drawable,mapNode);
-			drawFloor(drawable,mapNode);
+		if(mapNode.hasWumpus()){
+			if(mapNode.getWumpusStatus() != Node.DEAD)
+				drawWumpus(drawable,mapNode);
+			else drawDeadWumpus(drawable,mapNode);
 		}
-		else if(mapNode.hasPit()){
+		if(mapNode.hasPit()){
 			drawPit(drawable,mapNode);
 		}
-		else if(mapNode.hasMinion()){
+		if(mapNode.hasMinion()){
 			drawMinion(drawable,mapNode);
-			drawFloor(drawable,mapNode);
 		}
-		else if(mapNode.hasAgent()){
-			drawAgent(drawable,mapNode);
-			drawFloor(drawable,mapNode);
-		}
-		else if(mapNode.hasFairy()){
+		if(mapNode.hasFairy()){
 			drawFairy(drawable,mapNode);
+		}
+		if(mapNode.hasAgent()){
+			drawAgent(drawable,mapNode);
+		}
+		if(!mapNode.isWall() && !mapNode.hasPit()){
 			drawFloor(drawable,mapNode);
 		}
-		else drawFloor(drawable,mapNode);
    }
    
    private void drawFloor(GLAutoDrawable drawable, Node mapNode) {
@@ -446,7 +466,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener {
 		GL2 gl = drawable.getGL().getGL2();
 		gl.glPushMatrix();
 	    gl.glLoadIdentity();                // reset the current model-view matrix
-	    gl.glColor3f(0.7f, 0.0f, 0.0f);
+	    gl.glColor3f(1.0f, 1.0f, 1.0f);
 	    gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); //translate to location on map
 		GLUquadric quad = glu.gluNewQuadric();
 		glu.gluQuadricDrawStyle(quad, GLU.GLU_FILL);
@@ -456,6 +476,58 @@ public class MapCanvas extends GLJPanel implements GLEventListener {
 		glu.gluDeleteQuadric(quad);	
 		gl.glPopMatrix();
 		
+	}
+	
+	private void drawDeadWumpus(GLAutoDrawable drawable, Node mapNode){
+		GL2 gl = drawable.getGL().getGL2();
+		//filled circle
+		float x1,y1,x2,y2;
+		float angle;
+		float radius = 0.43f;
+		 
+		x1 = 0.0f;
+		y1=0.0f;
+		
+		gl.glPushMatrix();
+	    gl.glLoadIdentity();                // reset the current model-view matrix
+	    gl.glColor3f(0.7f, 0.0f, 0.0f);
+	    gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); //translate to location on map
+		 
+		gl.glBegin(GL_TRIANGLE_FAN);
+		gl.glVertex2f(x1,y1);
+		 
+		for (angle=1.0f;angle<361.0f;angle+=0.2)
+		{
+		    x2 = (float)(x1 + Math.sin(angle)*radius);
+		    y2 = (float)(y1 + Math.cos(angle)*radius);
+		    gl.glVertex2f(x2,y2);
+		}
+		
+		gl.glPopMatrix();
+		gl.glEnd();
+		
+		
+	   textureDeadEnemy.enable(gl);
+	   textureDeadEnemy.bind(gl);
+	   gl.glPushMatrix();
+	   gl.glLoadIdentity();                // reset the current model-view matrix
+	   gl.glColor3f(0.7f, 0.0f, 0.0f);
+       gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); //translate to location on map
+       gl.glScalef(0.6f,0.6f,0.6f);
+       gl.glBegin(GL_QUADS); // of the color cube
+	      gl.glTexCoord2f(textureDeadEnemyRight, textureDeadEnemyBottom);
+	      gl.glVertex3f(-0.5f, -0.5f, 0.0f); // bottom-left of the texture and quad
+	      gl.glTexCoord2f(textureDeadEnemyLeft, textureDeadEnemyBottom);
+	      gl.glVertex3f(0.5f, -0.5f, 0.0f);  // bottom-right of the texture and quad
+	      gl.glTexCoord2f(textureDeadEnemyLeft, textureDeadEnemyTop);
+	      gl.glVertex3f(0.5f, 0.5f, 0.0f);   // top-right of the texture and quad
+	      gl.glTexCoord2f(textureDeadEnemyRight, textureDeadEnemyTop);
+	      gl.glVertex3f(-0.5f, 0.5f, 0.0f);  // top-left of the texture and quad
+	   gl.glEnd();
+	   textureDeadEnemy.disable(gl);
+	   /*if(mapNode.getWumpusStatus() == Node.DEAD || mapNode.getMinionStatus() == Node.DEAD)
+		   applyDeadEnemyTexture(drawable,mapNode);*/
+	   gl.glPopMatrix();
 	}
 	
 	private void drawWall(GLAutoDrawable drawable, Node mapNode) {
@@ -469,7 +541,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener {
 	      // Binds this texture to the current GL context.
 	      textureWall.bind(gl);  // same as gl.glBindTexture(texture.getTarget(), texture.getTextureObject());
 	      
-	      gl.glColor3f(0.7f, 0.0f, 0.0f);
+	      gl.glColor3f(0.6f, 0.0f, 0.4f);
 	      gl.glLoadIdentity();                // reset the current model-view matrix
 	      gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); //translate to location on map
 	      //gl.glRotatef(angleCube, 1.0f, 1.0f, 1.0f); // rotate about the x, y and z-axes

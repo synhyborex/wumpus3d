@@ -226,12 +226,12 @@ public abstract class Agent extends Thread {
 		//keep moving the arrow until it reaches an end condition
 		while(!grid.getNode(arrowPos.getX()+addToX,arrowPos.getY()+addToY).isWall()){
 			arrowPos = grid.getNode(arrowPos.getX()+addToX,arrowPos.getY()+addToY);
-			if(arrowPos.hasMinion()){
+			if(arrowPos.hasMinion() && arrowPos.getMinionStatus() != Node.DEAD){
 				grid.setNodeType(arrowPos.getX(),arrowPos.getY(),Grid.MINION,false); //there is no longer a minion here
 				Logger.writeToLog("You hear a shriek of pain...\r\n");
 				return HIT_MINION;
 			}
-			else if(arrowPos.hasWumpus()){
+			else if(arrowPos.hasWumpus() && arrowPos.getWumpusStatus() != Node.DEAD){
 				grid.setNodeType(arrowPos.getX(),arrowPos.getY(),Grid.WUMPUS,false); //there is no longer a Wumpus here
 				Logger.writeToLog("You hear a deafening roar...\r\n");
 				return HIT_WUMPUS;
@@ -451,14 +451,18 @@ public abstract class Agent extends Thread {
 			case DAMAGED_BY_MINION:
 				//what to do if we hit a minion
 				lifePoints -= 10;
+				if(lifePoints == 0)
+					grid.setNodeType(currentNode.getX(),currentNode.getY(),Grid.AGENT,false); //Agent is dead
 				break;
 			case DIED_TO_WUMPUS:
 				//what to do if we hit a Wumpus
 				lifePoints = 0;
+				grid.setNodeType(currentNode.getX(),currentNode.getY(),Grid.AGENT,false); //Agent is dead
 				break;
 			case DIED_TO_PIT:
 				//what to do if we hit a pit
 				lifePoints = 0;
+				grid.setNodeType(currentNode.getX(),currentNode.getY(),Grid.AGENT,false); //Agent is dead
 				break;
 			case GOAL_FOUND:
 				//what to do if we hit a goal
