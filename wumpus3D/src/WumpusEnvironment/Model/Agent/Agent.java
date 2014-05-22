@@ -197,8 +197,10 @@ public abstract class Agent extends Thread {
 	 * @return the value of what the arrow hit
 	 */
 	public int fireArrow(int direction){
-		movementCost += ARROW_COST;
-		Node arrowPos = currentNode;
+		//display action in log
+		Logger.writeToLog("* Fired an arrow *\r\n");
+		movementCost += ARROW_COST; //there is a cost to fire an arrow
+		Node arrowPos = currentNode; //start arrow at agent's location
 		int addToX, addToY;
 		switch(direction){
 			case NORTH:
@@ -410,6 +412,7 @@ public abstract class Agent extends Thread {
 	 */
 	public int getDirectionOfGold(){
 		movementCost += HINT_COST;
+		log(""+grid.directionOfClosestGoal(currentNode));
 		return grid.directionOfClosestGoal(currentNode);
 	}
 	
@@ -429,9 +432,9 @@ public abstract class Agent extends Thread {
 	private int currNodeStatus(){
 		int value = SAFE;
 		if(currentNode.hasGoal()) value = GOAL_FOUND;
-		else if(currentNode.hasWumpus()) value = DIED_TO_WUMPUS;
+		else if(currentNode.hasWumpus() && currentNode.getWumpusStatus() != Node.DEAD) value = DIED_TO_WUMPUS;
 		else if(currentNode.hasPit()) value = DIED_TO_PIT;
-		else if(currentNode.hasMinion()) value = DAMAGED_BY_MINION;
+		else if(currentNode.hasMinion() && currentNode.getMinionStatus() != Node.DEAD) value = DAMAGED_BY_MINION;
 		determinePenalty(value); //figure out what, if any, penalties to apply to score
 		return value;
 	}
@@ -738,7 +741,7 @@ public abstract class Agent extends Thread {
 				break;
 			default:
 				ret = null;
-				System.out.println("THIS SHOULD NEVER HAPPEN");
+				break;
 		}
 		return ret;
 	}

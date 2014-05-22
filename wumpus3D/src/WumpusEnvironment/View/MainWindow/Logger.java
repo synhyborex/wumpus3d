@@ -81,12 +81,12 @@ public class Logger extends JPanel implements ActionListener {
 	
 	public static void generateLogEntry(Agent a, Grid g){
 		//log.append(g.gridToString()); //print the grid
+		log.append(logSeparator); //print the separator for the next round
+		log.append("\r\n");
 		log.append(a.locationToString()); //print the Agent's location
 		log.append("Performance Value: " + a.getPerformanceValue() + "\r\n");
 		//log.append("Agent heading: " + a.headingToString() + "\r\n"); //print the Agent's heading
 		log.append(a.movementStatusToString()); //print what happened last step
-		log.append(logSeparator); //print the separator for the next round
-		log.append("\r\n");
 	}
 	
 	public static void writeToLog(String s){

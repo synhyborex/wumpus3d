@@ -184,30 +184,30 @@ public class Grid {
 	//returns -1 if you're directly on top of the goal and there are no others
 	public int directionOfClosestGoal(Node node){
 		Node goal = findClosestGoal(node);
-		int ns = node.getY() - goal.getY(); //negative means NORTH, positive means SOUTH
-		int ew = node.getX() - goal.getX(); //negative means WEST, positive means EAST
+		int ns = node.getY() - goal.getY(); //negative means SOUTH, positive means NORTH
+		int ew = node.getX() - goal.getX(); //negative means EAST, positive means WEST
 		
 		if(ns == 0 && ew == 0) return -1; //both are 0
 		//one of the two is 0
 		if(ns == 0){
-			if(ew < 0) return Agent.WEST;
-			if(ew > 0) return Agent.EAST;
+			if(ew < 0) return Agent.EAST;
+			if(ew > 0) return Agent.WEST;
 		}
 		if(ew == 0){
-			if(ns < 0) return Agent.NORTH;
-			if(ns > 0) return Agent.SOUTH;
+			if(ns < 0) return Agent.SOUTH;
+			if(ns > 0) return Agent.NORTH;
 		}		
 		
 		//neither is 0
 		//we want to return the direction that is further from the goal if, for example,
 		//the goal is both NORTH and WEST of the given Node
 		if(Math.abs(ns) > Math.abs(ew)){ //check abs of distance, since sign indicates direction
-			if(ns < 0) return Agent.NORTH;
-			if(ns > 0) return Agent.SOUTH;
+			if(ns < 0) return Agent.SOUTH;
+			if(ns > 0) return Agent.NORTH;
 		}
 		else{ //ew is >= ns
-			if(ew < 0) return Agent.WEST;
-			if(ew > 0) return Agent.EAST;
+			if(ew < 0) return Agent.EAST;
+			if(ew > 0) return Agent.WEST;
 		}
 		
 		return -2; //if it ever gets here it means I missed a case
