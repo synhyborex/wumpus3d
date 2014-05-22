@@ -1,5 +1,6 @@
 package WumpusEnvironment.View.MainWindow;
 
+import java.awt.event.*;
 import java.io.IOException;
 
 import javax.media.opengl.*;
@@ -20,7 +21,7 @@ import static javax.media.opengl.GL2.*; // GL2 constants
  * It also handles the OpenGL events to render graphics.
  */
 @SuppressWarnings("serial")
-public class MapCanvas extends GLJPanel implements GLEventListener {
+public class MapCanvas extends GLJPanel implements GLEventListener, MouseListener, MouseMotionListener {
 	public static final int MAP_VIEW = 0;
 	public static final int AGENT_VIEW = 0;
 	private int view;
@@ -37,6 +38,10 @@ public class MapCanvas extends GLJPanel implements GLEventListener {
    
    // Position is somewhat in front of screen
    private float lightPosition[] = {0.0f, 0.0f, 2.0f};
+   
+   //camera variables
+   private float rotateX = 0.0f, rotateY = 0.0f, zoomZ = 0.0f;
+   private int startX, endX, startY, endY, startZ, endZ;
    
    // Textures
    //wall texture
@@ -74,6 +79,8 @@ public class MapCanvas extends GLJPanel implements GLEventListener {
    /** Constructor to setup the GUI for this Component */
    public MapCanvas(int view) {
       this.addGLEventListener(this);
+      this.addMouseListener(this);
+      this.addMouseMotionListener(this);
       map = Grid.getInstance();
       this.view = view;
    }
@@ -239,8 +246,11 @@ public class MapCanvas extends GLJPanel implements GLEventListener {
       //set up camera
       int mapWidth = map.getWidth(), mapHeight = map.getHeight();
       int distance = -(mapWidth+mapHeight/2);
-      int[] midPoint = {-mapWidth/2,-mapHeight/2}; 
-      glu.gluLookAt(midPoint[0], midPoint[1], distance, midPoint[0], midPoint[1], 0, 0, 1, 0); //set camera
+      int[] midPoint = {-mapWidth/2,-mapHeight/2};
+      //set camera
+      glu.gluLookAt(midPoint[0]+(float)(1.2*(distance/3.25))+rotateX, midPoint[1]+(float)(1.2*(distance/3))+rotateY, distance/1.2+zoomZ, //eye 
+    		  		midPoint[0], midPoint[1], 0, //center
+    		  		0, 0, -1); //up
  
       // Enable the model-view transform
       gl.glMatrixMode(GL_MODELVIEW);
@@ -491,7 +501,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener {
 		gl.glPushMatrix();
 	    gl.glLoadIdentity();                // reset the current model-view matrix
 	    gl.glColor3f(0.7f, 0.0f, 0.0f);
-	    gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); //translate to location on map
+	    gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.01f); //translate to location on map
 		 
 		gl.glBegin(GL_TRIANGLE_FAN);
 		gl.glVertex2f(x1,y1);
@@ -621,7 +631,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener {
 		  gl.glLoadIdentity();                 // reset the model-view matrix
 	      gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); // translate
 	      gl.glRotatef(anglePyramid, -0.2f, 0.0f, 1.0f); // rotate about the z-axis
-	      gl.glRotatef(90, 1.0f, 0.0f, 0.0f); //flip so tip faces camera
+	      gl.glRotatef(-90, 1.0f, 0.0f, 0.0f); //flip so tip faces camera
 	      gl.glScalef(0.25f, 0.25f, 0.25f);
 	 
 	      gl.glBegin(GL_TRIANGLES); // of the pyramid
@@ -695,4 +705,45 @@ public class MapCanvas extends GLJPanel implements GLEventListener {
     */
    @Override
    public void dispose(GLAutoDrawable drawable) { }
+
+	@Override
+	public void mouseDragged(MouseEvent e) {
+		e.translatePoint(-startX,-startY);
+		//rotateX = e.getX();
+		//rotateY = e.getY();
+	}
+	
+	@Override
+	public void mouseMoved(MouseEvent e) {
+		// do nothing for now
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		// do nothing for now
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		startX = e.getX();
+		startY = e.getY();
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		endX = e.getX();
+		endY = e.getY();
+		//rotateX = endX-startX;
+		//rotateY = endY-startY;
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// do nothing for now		
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// do nothing for now
+	}
 }
