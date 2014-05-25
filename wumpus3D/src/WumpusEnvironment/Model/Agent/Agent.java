@@ -292,6 +292,7 @@ public abstract class Agent extends Thread {
 		currentNode = grid.getNode(currentNode.getX()+addToX,currentNode.getY()+addToY);
 		grid.setNodeType(currentNode.getX(),currentNode.getY(),Grid.AGENT,true); //Agent is now here
 		grid.setAgentLocation(currentNode); //update current node the Agent is on
+		grid.setAgentHeading(HEADING);
 		grid.addToEvaluated(currentNode); //this Node has now been evaluated		
 		
 		//also need to adjust score for movement and search
@@ -412,7 +413,6 @@ public abstract class Agent extends Thread {
 	 */
 	public int getDirectionOfGold(){
 		movementCost += HINT_COST;
-		log(""+grid.directionOfClosestGoal(currentNode));
 		return grid.directionOfClosestGoal(currentNode);
 	}
 	
@@ -910,7 +910,6 @@ public abstract class Agent extends Thread {
 	 */
 	public void log(String s){
 		Logger.writeToLog(s+"\r\n");
-		//ApplicationWindow.setLogMessage(s + "\r\n");
 	}
 
 }

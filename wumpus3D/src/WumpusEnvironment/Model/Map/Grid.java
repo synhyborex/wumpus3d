@@ -25,6 +25,7 @@ public class Grid {
 	protected static Node[][] grid; //the map we're operating on
 	protected static Node[] goalLocations; //the locations of the goals on the map
 	protected static Node agentLocation; //the location of the Agent on the map
+	protected static int agentHeading; //the way the Agent is facing
 	protected static Node agentStartLocation; //the location of the Agent at the initialization of the map
 	
 	//singleton
@@ -270,6 +271,14 @@ public class Grid {
 	}
 	
 	/**
+	 * Returns the current direction in which the <code>Agent</code> is facing
+	 * @return the current direction in which the <code>Agent</code> is facing
+	 */
+	public int getAgentHeading(){
+		return agentHeading;
+	}
+	
+	/**
 	 * Returns the <code>Node</code> at the requested location on the map
 	 * @param x the x location on the map
 	 * @param y the y location on the map
@@ -353,6 +362,18 @@ public class Grid {
 		agentLocation = loc;
 	}
 	
+	/**
+	 * Sets the direction the <code>Agent</code> is facing
+	 * @param heading the heading of the <code>Agent</code> 
+	 */
+	public void setAgentHeading(int heading){
+		agentHeading = heading;
+	}
+	
+	/**
+	 * Sets the start location of the <code>Agent</code> to the given <code>Node</code>
+	 * @param loc the <code>Node</code> that the <code>Agent</code> starts at
+	 */
 	public void setAgentStartLocation(Node loc){
 		agentStartLocation = loc;
 	}

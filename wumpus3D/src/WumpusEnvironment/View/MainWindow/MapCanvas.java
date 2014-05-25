@@ -32,13 +32,6 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
    private float speedCube = -1.5f;   // rotational speed for cube
    private Grid map;
    
-   //ambient and diffuse lighting
-   private float lightAmbient[] = {0.2f, 0.2f, 0.2f};  // Ambient Light is 20% white
-   private float lightDiffuse[] = {1.0f, 1.0f, 1.0f};  // Diffuse Light is white
-   
-   // Position is somewhat in front of screen
-   private float lightPosition[] = {0.0f, 0.0f, 2.0f};
-   
    //camera variables
    private float rotateX = 0.0f, rotateY = 0.0f, zoomZ = 0.0f;
    private int startX, endX, startY, endY, startZ, endZ;
@@ -46,7 +39,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
    // Textures
    //wall texture
    private Texture textureWall;
-   private String textureWallFileName = "images/wall.gif";
+   private String textureWallFileName = "images/legacy/wall.gif";
    private String textureWallFileType = ".gif";
 	// Texture image flips vertically. Shall use TextureCoords class to retrieve the
    // top, bottom, left and right coordinates.
@@ -54,7 +47,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
    
    //floor texture
    private Texture textureFloor;
-   private String textureFloorFileName = "images/floor.gif";
+   private String textureFloorFileName = "images/legacy/floor.gif";
    private String textureFloorFileType = ".gif";
    // Texture image flips vertically. Shall use TextureCoords class to retrieve the
    // top, bottom, left and right coordinates.
@@ -62,19 +55,25 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
    
    //pit texture
    private Texture texturePit;
-   private String texturePitFileName = "images/pit.gif";
+   private String texturePitFileName = "images/legacy/pit.gif";
    private String texturePitFileType = ".gif";
    // Texture image flips vertically. Shall use TextureCoords class to retrieve the
    // top, bottom, left and right coordinates.
    private float texturePitTop, texturePitBottom, texturePitLeft, texturePitRight;
    
    //dead enemy texture
-   private Texture textureDeadEnemy;
-   private String textureDeadEnemyFileName = "images/dead_enemy.gif";
-   private String textureDeadEnemyFileType = ".gif";
+   private Texture textureDeadWumpus;
+   private Texture textureDeadMinion;
+   private String textureDeadEnemyFileName = "images/dead_wumpus.png";
+   private String textureDeadEnemyFileType = ".png";
    // Texture image flips vertically. Shall use TextureCoords class to retrieve the
    // top, bottom, left and right coordinates.
    private float textureDeadEnemyTop, textureDeadEnemyBottom, textureDeadEnemyLeft, textureDeadEnemyRight;   
+   
+   //pit texture
+   private Texture textureAgent;
+   private String textureAgentFileName = "images/agent.png";
+   private String textureAgentFileType = ".png";
  
    /** Constructor to setup the GUI for this Component */
    public MapCanvas(int view) {
@@ -101,13 +100,6 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
       gl.glDepthFunc(GL_LEQUAL);  // the type of depth test to do
       gl.glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // best perspective correction
       gl.glShadeModel(GL_SMOOTH); // blends colors nicely, and smoothes out lighting
-      
-      // Load Light-Parameters Into GL.GL_LIGHT1
-      gl.glLightfv(GL_LIGHT1, GL_AMBIENT, lightAmbient, 0);        
-      gl.glLightfv(GL_LIGHT1, GL_DIFFUSE, lightDiffuse, 0);
-      gl.glLightfv(GL_LIGHT1, GL_POSITION, lightPosition, 0);
-
-      gl.glEnable(GL_LIGHT1);
       
       
       // Set The Texture Generation Mode For S To Sphere Mapping (NEW)
@@ -200,9 +192,14 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
       try {
          // Create a OpenGL Texture object from (URL, mipmap, file suffix)
          // Use URL so that can read from JAR and disk file.
-         textureDeadEnemy = TextureIO.newTexture(
+         textureDeadWumpus = TextureIO.newTexture(
                getClass().getClassLoader().getResource(textureDeadEnemyFileName), // relative to project root 
                false, textureDeadEnemyFileType);
+         
+         textureDeadEnemyFileName = "images/dead_minion.png";
+         textureDeadMinion = TextureIO.newTexture(
+                 getClass().getClassLoader().getResource(textureDeadEnemyFileName), // relative to project root 
+                 false, textureDeadEnemyFileType);
 
          // Use linear filter for texture if image is larger than the original texture
          gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -212,11 +209,30 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 
          // Texture image flips vertically. Shall use TextureCoords class to retrieve
          // the top, bottom, left and right coordinates, instead of using 0.0f and 1.0f.
-         TextureCoords textureCoords = textureDeadEnemy.getImageTexCoords();
+         TextureCoords textureCoords = textureDeadWumpus.getImageTexCoords();
          textureDeadEnemyTop = textureCoords.top();
          textureDeadEnemyBottom = textureCoords.bottom();
          textureDeadEnemyLeft = textureCoords.left();
          textureDeadEnemyRight = textureCoords.right();
+      } catch (GLException e) {
+         e.printStackTrace();
+      } catch (IOException e) {
+         e.printStackTrace();
+      }
+      
+      // Load agent texture from image
+      try {
+         // Create a OpenGL Texture object from (URL, mipmap, file suffix)
+         // Use URL so that can read from JAR and disk file.
+         textureAgent = TextureIO.newTexture(
+               getClass().getClassLoader().getResource(textureAgentFileName), // relative to project root 
+               false, textureAgentFileType);
+
+         // Use linear filter for texture if image is larger than the original texture
+         gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+         // Use linear filter for texture if image is smaller than the original texture
+         gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+         gl.glGenerateMipmap(GL_TEXTURE_2D);
       } catch (GLException e) {
          e.printStackTrace();
       } catch (IOException e) {
@@ -248,13 +264,42 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
       int distance = -(mapWidth+mapHeight/2);
       int[] midPoint = {-mapWidth/2,-mapHeight/2};
       //set camera
-      glu.gluLookAt(midPoint[0]+(float)(1.2*(distance/3.25))+rotateX, midPoint[1]+(float)(1.2*(distance/3))+rotateY, distance/1.2+zoomZ, //eye 
-    		  		midPoint[0], midPoint[1], 0, //center
-    		  		0, 0, -1); //up
+      glu.gluLookAt(//eye
+	    		  		midPoint[0]/*+(float)(0.75*(distance/3.25))*/, 
+	    		  			midPoint[1]+(float)(0.75*(distance/3)), 
+	    		  			distance,
+    		  		//center
+	    		  			midPoint[0], midPoint[1], 0,
+    		  		//up
+	    		  			0, 0, -1);
  
       // Enable the model-view transform
       gl.glMatrixMode(GL_MODELVIEW);
       gl.glLoadIdentity(); // reset
+      
+      // Prepare light parameters.
+      float SHINE_ALL_DIRECTIONS = 1;
+      float[] lightPos = {midPoint[0]*1.5f, midPoint[0]*1.5f, distance*2f, SHINE_ALL_DIRECTIONS};
+      float[] lightColorAmbient = {0.3f, 0.3f, 0.3f, 1f};
+      float[] lightColorDiffuse = {0.2f, 0.2f, 0.2f, 1f};
+      float[] lightColorSpecular = {0.4f, 0.4f, 0.4f, 1f};
+
+      // Set light parameters.
+      gl.glLightfv(GL_LIGHT1, GL_POSITION, lightPos, 0);
+      gl.glLightfv(GL_LIGHT1, GL_AMBIENT, lightColorAmbient, 0);
+      gl.glLightfv(GL_LIGHT1, GL_DIFFUSE, lightColorDiffuse, 0);
+      gl.glLightfv(GL_LIGHT1, GL_SPECULAR, lightColorSpecular, 0);
+
+      // Enable lighting in 
+      gl.glEnable(GL_LIGHT1);
+      gl.glEnable(GL_LIGHTING);
+
+      // Set material properties.
+      float[] rgba = {1.0f, 1.0f, 1.0f};
+      gl.glMaterialfv(GL_FRONT, GL_AMBIENT, rgba, 0);
+      gl.glMaterialfv(GL_FRONT, GL_DIFFUSE, rgba, 0);
+      gl.glMaterialfv(GL_FRONT, GL_SPECULAR, rgba, 0);
+      gl.glMaterialf(GL_FRONT, GL_SHININESS, 0.5f);
    }
  
    /**
@@ -267,73 +312,6 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	      
 	      drawMap(drawable);
 	      update();
-	 
-	      // ----- Render the Pyramid -----
-	      /*gl.glLoadIdentity();                 // reset the model-view matrix
-	      gl.glTranslatef(-1.6f, 0.0f, -16.0f); // translate left and into the screen
-	      gl.glRotatef(anglePyramid, -0.2f, 1.0f, 0.0f); // rotate about the y-axis
-	 
-	      gl.glBegin(GL_TRIANGLES); // of the pyramid
-	 
-	      // Font-face triangle
-	      gl.glColor3f(1.0f, 0.0f, 0.0f); // Red
-	      gl.glVertex3f(0.0f, 1.0f, 0.0f);
-	      gl.glColor3f(0.0f, 1.0f, 0.0f); // Green
-	      gl.glVertex3f(-1.0f, -1.0f, 1.0f);
-	      gl.glColor3f(0.0f, 0.0f, 1.0f); // Blue
-	      gl.glVertex3f(1.0f, -1.0f, 1.0f);
-	 
-	      // Right-face triangle
-	      gl.glColor3f(1.0f, 0.0f, 0.0f); // Red
-	      gl.glVertex3f(0.0f, 1.0f, 0.0f);
-	      gl.glColor3f(0.0f, 0.0f, 1.0f); // Blue
-	      gl.glVertex3f(1.0f, -1.0f, 1.0f);
-	      gl.glColor3f(0.0f, 1.0f, 0.0f); // Green
-	      gl.glVertex3f(1.0f, -1.0f, -1.0f);
-	 
-	      // Back-face triangle
-	      gl.glColor3f(1.0f, 0.0f, 0.0f); // Red
-	      gl.glVertex3f(0.0f, 1.0f, 0.0f);
-	      gl.glColor3f(0.0f, 1.0f, 0.0f); // Green
-	      gl.glVertex3f(1.0f, -1.0f, -1.0f);
-	      gl.glColor3f(0.0f, 0.0f, 1.0f); // Blue
-	      gl.glVertex3f(-1.0f, -1.0f, -1.0f);
-	 
-	      // Left-face triangle
-	      gl.glColor3f(1.0f, 0.0f, 0.0f); // Red
-	      gl.glVertex3f(0.0f, 1.0f, 0.0f);
-	      gl.glColor3f(0.0f, 0.0f, 1.0f); // Blue
-	      gl.glVertex3f(-1.0f, -1.0f, -1.0f);
-	      gl.glColor3f(0.0f, 1.0f, 0.0f); // Green
-	      gl.glVertex3f(-1.0f, -1.0f, 1.0f);
-	 
-	      gl.glEnd(); // of the pyramid*/
-	 
-	      // ----- Render the Color Cube -----
-	      /*gl.glLoadIdentity();                // reset the current model-view matrix
-	      gl.glTranslatef(0.0f, 0.0f, -10.0f); // translate right and into the screen
-	      //gl.glRotatef(angleCube, 1.0f, 1.0f, 1.0f); // rotate about the x, y and z-axes
-	      render(drawable);
-	      gl.glLoadIdentity();                // reset the current model-view matrix
-	      gl.glTranslatef(-1.0f, 0.0f, -10.0f); // translate right and into the screen
-	      //gl.glRotatef(angleCube, 1.0f, 1.0f, 1.0f); // rotate about the x, y and z-axes
-	      render(drawable);
-	      gl.glLoadIdentity();                // reset the current model-view matrix
-	      gl.glTranslatef(1.5f, 0.0f, -10.0f); // translate right and into the screen
-	      //gl.glRotatef(angleCube, 1.0f, 1.0f, 1.0f); // rotate about the x, y and z-axes
-	      render(drawable);
-	      gl.glLoadIdentity();                // reset the current model-view matrix
-	      gl.glTranslatef(0.0f, 2.0f, -10.0f); // translate right and into the screen
-	      //gl.glRotatef(angleCube, 1.0f, 1.0f, 1.0f); // rotate about the x, y and z-axes
-	      render(drawable);
-	      gl.glLoadIdentity();                // reset the current model-view matrix
-	      gl.glTranslatef(-0.5f, 2.0f, -10.0f); // translate right and into the screen
-	      //gl.glRotatef(angleCube, 1.0f, 1.0f, 1.0f); // rotate about the x, y and z-axes
-	      render(drawable);
-	 
-	      // Update the rotational angle after each refresh.
-	      anglePyramid += speedPyramid;
-	      angleCube += speedCube;*/
    }
    
    private void drawMap(GLAutoDrawable drawable){
@@ -361,7 +339,9 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 			drawPit(drawable,mapNode);
 		}
 		if(mapNode.hasMinion()){
-			drawMinion(drawable,mapNode);
+			if(mapNode.getMinionStatus() != Node.DEAD)
+				drawMinion(drawable,mapNode);
+			else drawDeadMinion(drawable,mapNode);
 		}
 		if(mapNode.hasFairy()){
 			drawFairy(drawable,mapNode);
@@ -380,8 +360,11 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	   textureFloor.bind(gl);
 	   gl.glPushMatrix();
 	   gl.glLoadIdentity();                // reset the current model-view matrix
-	   gl.glColor3f(1.0f, 1.0f, 1.0f);
+	   if(mapNode.isEvaluated()) //show what the agent has knowledge of
+		   gl.glColor3f(1.0f, 1.0f, 0.0f);
+	   else gl.glColor3f(1.0f, 1.0f, 1.0f);
        gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); //translate to location on map
+       gl.glNormal3f(0f,0f,-1f);
        gl.glBegin(GL_QUADS); // of the color cube
 	      gl.glTexCoord2f(textureFloorLeft, textureFloorBottom);
 	      gl.glVertex3f(-0.5f, -0.5f, 0.5f); // bottom-left of the texture and quad
@@ -393,8 +376,6 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	      gl.glVertex3f(-0.5f, 0.5f, 0.5f);  // top-left of the texture and quad
 	   gl.glEnd();
 	   textureFloor.disable(gl);
-	   /*if(mapNode.getWumpusStatus() == Node.DEAD || mapNode.getMinionStatus() == Node.DEAD)
-		   applyDeadEnemyTexture(drawable,mapNode);*/
 	   gl.glPopMatrix();
 		
 	}
@@ -410,7 +391,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 		glu.gluQuadricDrawStyle(quad, GLU.GLU_FILL);
         glu.gluQuadricNormals(quad, GLU.GLU_FLAT);
         glu.gluQuadricOrientation(quad, GLU.GLU_OUTSIDE);
-		glu.gluSphere(quad, 0.43, 10, 15);
+		glu.gluSphere(quad, 0.43, 25, 25);
 		glu.gluDeleteQuadric(quad);	
 		gl.glPopMatrix();
 		
@@ -419,33 +400,110 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	private void drawAgent(GLAutoDrawable drawable, Node mapNode) {
 		// Get the OpenGL graphics context
 		GL2 gl = drawable.getGL().getGL2();
+		textureAgent.enable(gl);
+		textureAgent.bind(gl);
 		gl.glPushMatrix();
-		gl.glColor3f(0.5f, 0.0f, 0.7f);
 	    gl.glLoadIdentity();                // reset the current model-view matrix
 	    gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); //translate to location on map
+	    gl.glRotatef(25,1f,0f,0f); //rotate a little upwards
+	    
+	    //rotate to face the Agent's current heading
+	    int rot = 30; //the base turn amount to face initial camera, or SOUTH
+	    switch(map.getAgentHeading()){
+	    	case 0: //NORTH
+	    		rot += 180;
+	    		break;
+	    	case 1: //EAST
+	    		rot += -90;
+	    		break;
+	    	case 2: //SOUTH
+	    		rot += 0; //the base amount!
+	    		break;
+	    	case 3:
+	    		rot += 90;
+	    		break;
+	    }
+	    gl.glRotatef(rot, 0f, 0f, 1f);
+	    
+	    
 		GLUquadric quad = glu.gluNewQuadric();
+		glu.gluQuadricTexture(quad,true);
 		glu.gluQuadricDrawStyle(quad, GLU.GLU_FILL);
         glu.gluQuadricNormals(quad, GLU.GLU_FLAT);
         glu.gluQuadricOrientation(quad, GLU.GLU_OUTSIDE);
-		glu.gluSphere(quad, 0.43, 10, 15);
+		glu.gluSphere(quad, 0.43, 25, 25);
 		glu.gluDeleteQuadric(quad);	
 		gl.glPopMatrix();
+		textureAgent.disable(gl);
 	}
 	
 	private void drawMinion(GLAutoDrawable drawable, Node mapNode) {
 		// Get the OpenGL graphics context
 		GL2 gl = drawable.getGL().getGL2();
+		textureDeadWumpus.enable(gl);
+		textureDeadWumpus.bind(gl);
 		gl.glPushMatrix();
-		gl.glColor3f(0.0f, 0.8f, 0.0f);
+		gl.glColor3f(1.0f, 0.549f, 0.0f); //dark orange
 	    gl.glLoadIdentity();                // reset the current model-view matrix
 	    gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); //translate to location on map
 		GLUquadric quad = glu.gluNewQuadric();
+		glu.gluQuadricTexture(quad,true);
 		glu.gluQuadricDrawStyle(quad, GLU.GLU_FILL);
         glu.gluQuadricNormals(quad, GLU.GLU_FLAT);
         glu.gluQuadricOrientation(quad, GLU.GLU_OUTSIDE);
-		glu.gluSphere(quad, 0.43, 10, 15);
-		glu.gluDeleteQuadric(quad);	
+		glu.gluSphere(quad, 0.43, 25, 25);
+		glu.gluDeleteQuadric(quad);
+		textureDeadWumpus.disable(gl);
 		gl.glPopMatrix();		
+	}
+	
+	private void drawDeadMinion(GLAutoDrawable drawable, Node mapNode){
+		GL2 gl = drawable.getGL().getGL2();
+		textureDeadMinion.enable(gl);
+		textureDeadMinion.bind(gl);
+		//filled circle
+		float x1,y1,x2,y2;
+		float angle;
+		float radius = 0.43f;
+		float z = 0.45f;
+		 
+		x1 = 0.0f;
+		y1=0.0f;
+		
+		gl.glPushMatrix();
+	    gl.glLoadIdentity();                // reset the current model-view matrix
+	    gl.glNormal3f(0f,0f,-1f); //one normal for the whole thing
+	    gl.glColor3f(1f, 1f, 1f);
+	    gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), z); //translate to location on map
+	    gl.glRotatef(180,0f,0f,1f);
+		 
+	    GLUquadric quad = glu.gluNewQuadric();
+		glu.gluQuadricTexture(quad,true);
+		glu.gluQuadricDrawStyle(quad, GLU.GLU_FILL);
+        glu.gluQuadricNormals(quad, GLU.GLU_FLAT);
+        glu.gluQuadricOrientation(quad, GLU.GLU_OUTSIDE);
+		glu.gluDisk(quad, 0, 0.43, 25, 1);
+		glu.gluDeleteQuadric(quad);
+		
+		gl.glPopMatrix();
+		
+		//draw the dead face
+	   /*gl.glPushMatrix();
+	   gl.glLoadIdentity();                // reset the current model-view matrix
+       gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), z-0.01f); //translate to location on map
+       gl.glScalef(0.6f,0.6f,0.6f);
+       gl.glBegin(GL_QUADS); // of the color cube
+	      gl.glTexCoord2f(textureDeadEnemyRight, textureDeadEnemyBottom);
+	      gl.glVertex3f(-0.5f, -0.5f, 0.0f); // bottom-left of the texture and quad
+	      gl.glTexCoord2f(textureDeadEnemyLeft, textureDeadEnemyBottom);
+	      gl.glVertex3f(0.5f, -0.5f, 0.0f);  // bottom-right of the texture and quad
+	      gl.glTexCoord2f(textureDeadEnemyLeft, textureDeadEnemyTop);
+	      gl.glVertex3f(0.5f, 0.5f, 0.0f);   // top-right of the texture and quad
+	      gl.glTexCoord2f(textureDeadEnemyRight, textureDeadEnemyTop);
+	      gl.glVertex3f(-0.5f, 0.5f, 0.0f);  // top-left of the texture and quad
+	   gl.glEnd();
+	   textureDeadWumpus.disable(gl);
+	   gl.glPopMatrix();*/
 	}
 	
 	private void drawPit(GLAutoDrawable drawable, Node mapNode) {
@@ -476,13 +534,13 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 		GL2 gl = drawable.getGL().getGL2();
 		gl.glPushMatrix();
 	    gl.glLoadIdentity();                // reset the current model-view matrix
-	    gl.glColor3f(1.0f, 1.0f, 1.0f);
+	    gl.glColor3f(1.0f, 0.0f, 0.0f);	//red
 	    gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); //translate to location on map
 		GLUquadric quad = glu.gluNewQuadric();
 		glu.gluQuadricDrawStyle(quad, GLU.GLU_FILL);
         glu.gluQuadricNormals(quad, GLU.GLU_FLAT);
         glu.gluQuadricOrientation(quad, GLU.GLU_OUTSIDE);
-		glu.gluSphere(quad, 0.43, 10, 15);
+		glu.gluSphere(quad, 0.43, 25, 25);
 		glu.gluDeleteQuadric(quad);	
 		gl.glPopMatrix();
 		
@@ -490,39 +548,38 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	
 	private void drawDeadWumpus(GLAutoDrawable drawable, Node mapNode){
 		GL2 gl = drawable.getGL().getGL2();
+		textureDeadWumpus.enable(gl);
+		textureDeadWumpus.bind(gl);
 		//filled circle
 		float x1,y1,x2,y2;
 		float angle;
 		float radius = 0.43f;
+		float z = 0.45f;
 		 
 		x1 = 0.0f;
 		y1=0.0f;
 		
 		gl.glPushMatrix();
 	    gl.glLoadIdentity();                // reset the current model-view matrix
-	    gl.glColor3f(0.7f, 0.0f, 0.0f);
-	    gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.01f); //translate to location on map
+	    gl.glNormal3f(0f,0f,-1f); //one normal for the whole thing
+	    gl.glColor3f(1f, 1f, 1f);
+	    gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), z); //translate to location on map
+	    gl.glRotatef(180,0f,0f,1f);
 		 
-		gl.glBegin(GL_TRIANGLE_FAN);
-		gl.glVertex2f(x1,y1);
-		 
-		for (angle=1.0f;angle<361.0f;angle+=0.2)
-		{
-		    x2 = (float)(x1 + Math.sin(angle)*radius);
-		    y2 = (float)(y1 + Math.cos(angle)*radius);
-		    gl.glVertex2f(x2,y2);
-		}
+	    GLUquadric quad = glu.gluNewQuadric();
+		glu.gluQuadricTexture(quad,true);
+		glu.gluQuadricDrawStyle(quad, GLU.GLU_FILL);
+        glu.gluQuadricNormals(quad, GLU.GLU_FLAT);
+        glu.gluQuadricOrientation(quad, GLU.GLU_OUTSIDE);
+		glu.gluDisk(quad, 0, 0.43, 25, 1);
+		glu.gluDeleteQuadric(quad);
 		
 		gl.glPopMatrix();
-		gl.glEnd();
 		
-		
-	   textureDeadEnemy.enable(gl);
-	   textureDeadEnemy.bind(gl);
-	   gl.glPushMatrix();
+		//draw the dead face
+	   /*gl.glPushMatrix();
 	   gl.glLoadIdentity();                // reset the current model-view matrix
-	   gl.glColor3f(0.7f, 0.0f, 0.0f);
-       gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); //translate to location on map
+       gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), z-0.01f); //translate to location on map
        gl.glScalef(0.6f,0.6f,0.6f);
        gl.glBegin(GL_QUADS); // of the color cube
 	      gl.glTexCoord2f(textureDeadEnemyRight, textureDeadEnemyBottom);
@@ -534,10 +591,8 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	      gl.glTexCoord2f(textureDeadEnemyRight, textureDeadEnemyTop);
 	      gl.glVertex3f(-0.5f, 0.5f, 0.0f);  // top-left of the texture and quad
 	   gl.glEnd();
-	   textureDeadEnemy.disable(gl);
-	   /*if(mapNode.getWumpusStatus() == Node.DEAD || mapNode.getMinionStatus() == Node.DEAD)
-		   applyDeadEnemyTexture(drawable,mapNode);*/
-	   gl.glPopMatrix();
+	   textureDeadWumpus.disable(gl);
+	   gl.glPopMatrix();*/
 	}
 	
 	private void drawWall(GLAutoDrawable drawable, Node mapNode) {
@@ -558,6 +613,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	      gl.glBegin(GL_QUADS); // of the color cube
 	 	 
 	      // Front Face
+	      gl.glNormal3f(0f,0f,1f);
 	      gl.glTexCoord2f(textureWallLeft, textureWallBottom);
 	      gl.glVertex3f(-0.5f, -0.5f, 0.5f); // bottom-left of the texture and quad
 	      gl.glTexCoord2f(textureWallRight, textureWallBottom);
@@ -568,6 +624,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	      gl.glVertex3f(-0.5f, 0.5f, 0.5f);  // top-left of the texture and quad
 
 	      // Back Face
+	      gl.glNormal3f(0f,0f,-1f);
 	      gl.glTexCoord2f(textureWallRight, textureWallBottom);
 	      gl.glVertex3f(-0.5f, -0.5f, -0.5f);
 	      gl.glTexCoord2f(textureWallRight, textureWallTop);
@@ -578,6 +635,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	      gl.glVertex3f(0.5f, -0.5f, -0.5f);
 	      
 	      // Top Face
+	      gl.glNormal3f(0f,1f,0f);
 	      gl.glTexCoord2f(textureWallLeft, textureWallTop);
 	      gl.glVertex3f(-0.5f, 0.5f, -0.5f);
 	      gl.glTexCoord2f(textureWallLeft, textureWallBottom);
@@ -588,6 +646,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	      gl.glVertex3f(0.5f, 0.5f, -0.5f);
 	      
 	      // Bottom Face
+	      gl.glNormal3f(0f,-1f,0f);
 	      gl.glTexCoord2f(textureWallRight, textureWallTop);
 	      gl.glVertex3f(-0.5f, -0.5f, -0.5f);
 	      gl.glTexCoord2f(textureWallLeft, textureWallTop);
@@ -598,6 +657,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	      gl.glVertex3f(-0.5f, -0.5f, 0.5f);
 	      
 	      // Right face
+	      gl.glNormal3f(1f,0f,0f);
 	      gl.glTexCoord2f(textureWallRight, textureWallBottom);
 	      gl.glVertex3f(0.5f, -0.5f, -0.5f);
 	      gl.glTexCoord2f(textureWallRight, textureWallTop);
@@ -608,6 +668,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	      gl.glVertex3f(0.5f, -0.5f, 0.5f);
 	      
 	      // Left Face
+	      gl.glNormal3f(-1f,0f,0f);
 	      gl.glTexCoord2f(textureWallLeft, textureWallBottom);
 	      gl.glVertex3f(-0.5f, -0.5f, -0.5f);
 	      gl.glTexCoord2f(textureWallRight, textureWallBottom);
@@ -627,48 +688,40 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	private void drawGoal(GLAutoDrawable drawable, Node mapNode) {
 		// Get the OpenGL graphics context
 	      GL2 gl = drawable.getGL().getGL2();
+	      textureWall.enable(gl);
+	      textureWall.bind(gl);
 	      gl.glPushMatrix();
 		  gl.glLoadIdentity();                 // reset the model-view matrix
 	      gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); // translate
 	      gl.glRotatef(anglePyramid, -0.2f, 0.0f, 1.0f); // rotate about the z-axis
-	      gl.glRotatef(-90, 1.0f, 0.0f, 0.0f); //flip so tip faces camera
+	      gl.glRotatef(-90, 1.0f, 0.0f, 0.0f); //flip so tip faces up
 	      gl.glScalef(0.25f, 0.25f, 0.25f);
 	 
 	      gl.glBegin(GL_TRIANGLES); // of the pyramid
 	 
-	      // Font-face triangle
-	      gl.glColor3f(1.0f, 0.0f, 0.0f); // Red
+	      // Front-face triangle
+	      gl.glNormal3f(0f,0f,-1f);
 	      gl.glVertex3f(0.0f, 1.0f, 0.0f);
-	      gl.glColor3f(0.0f, 1.0f, 0.0f); // Green
 	      gl.glVertex3f(-1.0f, -1.0f, 1.0f);
-	      gl.glColor3f(0.0f, 0.0f, 1.0f); // Blue
 	      gl.glVertex3f(1.0f, -1.0f, 1.0f);
 	 
 	      // Right-face triangle
-	      gl.glColor3f(1.0f, 0.0f, 0.0f); // Red
 	      gl.glVertex3f(0.0f, 1.0f, 0.0f);
-	      gl.glColor3f(0.0f, 0.0f, 1.0f); // Blue
 	      gl.glVertex3f(1.0f, -1.0f, 1.0f);
-	      gl.glColor3f(0.0f, 1.0f, 0.0f); // Green
 	      gl.glVertex3f(1.0f, -1.0f, -1.0f);
 	 
 	      // Back-face triangle
-	      gl.glColor3f(1.0f, 0.0f, 0.0f); // Red
 	      gl.glVertex3f(0.0f, 1.0f, 0.0f);
-	      gl.glColor3f(0.0f, 1.0f, 0.0f); // Green
 	      gl.glVertex3f(1.0f, -1.0f, -1.0f);
-	      gl.glColor3f(0.0f, 0.0f, 1.0f); // Blue
 	      gl.glVertex3f(-1.0f, -1.0f, -1.0f);
 	 
 	      // Left-face triangle
-	      gl.glColor3f(1.0f, 0.0f, 0.0f); // Red
 	      gl.glVertex3f(0.0f, 1.0f, 0.0f);
-	      gl.glColor3f(0.0f, 0.0f, 1.0f); // Blue
 	      gl.glVertex3f(-1.0f, -1.0f, -1.0f);
-	      gl.glColor3f(0.0f, 1.0f, 0.0f); // Green
 	      gl.glVertex3f(-1.0f, -1.0f, 1.0f);
 	 
 	      gl.glEnd(); // of the pyramid
+	      textureWall.disable(gl);
 	      gl.glPopMatrix();
 	}
 	
@@ -676,8 +729,8 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 		GL2 gl = drawable.getGL().getGL2();
 		gl.glEnable(GL.GL_BLEND);
        gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
-	   textureDeadEnemy.enable(gl);
-	   textureDeadEnemy.bind(gl);
+	   textureDeadWumpus.enable(gl);
+	   textureDeadWumpus.bind(gl);
 	   gl.glPushMatrix();
 	   gl.glLoadIdentity();                // reset the current model-view matrix
 	   gl.glColor3f(1.0f, 1.0f, 1.0f);
@@ -692,7 +745,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	      gl.glTexCoord2f(textureDeadEnemyLeft, textureDeadEnemyTop);
 	      gl.glVertex3f(-0.5f, 0.5f, 0.5f);  // top-left of the texture and quad
 	   gl.glEnd();
-	   textureDeadEnemy.disable(gl);
+	   textureDeadWumpus.disable(gl);
 	   gl.glDisable(GL.GL_BLEND);
 	}
    
