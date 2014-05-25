@@ -52,7 +52,6 @@ public class MapLoader {
 			flags.close();
 			
 			//create the grid so we can modify Nodes
-			//grid = Grid.getInstance();
 			grid.gridInit(gridWidth+2,gridHeight+2,gridNumGoals,learningCount);
 			for(int i = 0; i < gridHeight; i++){
 				String nextRow = sc.nextLine();
@@ -62,11 +61,6 @@ public class MapLoader {
 							agentStartX = j+1;
 							agentStartY = i+1;
 							break;
-						/*case 'F':
-							agentStartX = j+1;
-							agentStartY = i+1;
-							fairy = true;
-							break;*/
 						case 'X':
 							grid.setNodeType(j+1,i+1,Grid.WALL,true);
 							break;
@@ -92,6 +86,7 @@ public class MapLoader {
 			grid.addToEvaluated(pass);
 			grid.setNodeType(pass.getX(),pass.getY(),Grid.AGENT,true);
 			grid.setAgentLocation(pass);
+			grid.setAgentHeading(1); //EAST
 		} catch (FileNotFoundException e) {
 			JOptionPane.showMessageDialog(THIS,"Map file was not found!");
 		}
