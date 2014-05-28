@@ -17,10 +17,11 @@ public class AgentHandler extends Thread {
 	}
 	
 	public void run(){
-		for(;;)
+		for(;;){
 			if(autoStep && !agent.isDead() && !grid.isSolved()){
 				agentStep();
 			}
+		}
 	}
 	
 	public void setAutoStep(boolean value){
@@ -38,10 +39,14 @@ public class AgentHandler extends Thread {
 			else Logger.generateLogEntry(agent,grid);
 		}
 		if(agent.isDead()){
+			ApplicationWindow.disableMovementButtons();
+			autoStep = false;
 			Logger.writeToLog("* You died! Better luck next time. *\r\n");
 			Logger.writeToLog("*** GAME OVER ***\r\n");
 		}
 		if(grid.isSolved()){
+			ApplicationWindow.disableMovementButtons();
+			autoStep = false;
 			Logger.writeToLog("* You found all the gold! *\r\n");
 			Logger.writeToLog("*** GAME OVER ***\r\n");
 		}

@@ -99,10 +99,10 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 	JPanel sliderAndButtons;
 	JLabel sliderLabel;
 	JSlider delayInterval;
-	JButton stopButton;
-	JButton stepButton;
-	JButton autoStepButton;
-	JButton resetButton;
+	static JButton stopButton;
+	static JButton stepButton;
+	static JButton autoStepButton;
+	static JButton resetButton;
 	
 	//main view
 	JSplitPane mainView; //the main view for the log and map
@@ -332,10 +332,6 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 		Logger.printMapStart();
 		Logger.generateLogEntry(agent,grid);
 		
-		//enable movement buttons
-		enableButtons(new JButton[]{stepButton,autoStepButton,resetButton});
-		stopButton.setEnabled(false);
-		
 		// Create the OpenGL rendering canvas
         mapView = new MapCanvas(MapCanvas.MAP_VIEW);
         //GLJPanel agentView = new MapCanvas(MapCanvas.AGENT_VIEW);
@@ -366,6 +362,9 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
         mapAnimator.start(); // start the animation loop
         //agentMapAnimator.start();
 		mainView.setLeftComponent(mapView);
+		//enable movement buttons
+		enableButtons(new JButton[]{stepButton,autoStepButton,resetButton});
+		stopButton.setEnabled(false);
 		//now that everything is set up, start the agent handling thread
 		agentHandler.start();
 	}
@@ -373,22 +372,26 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 	protected void nextStep(){
 		agentHandler.agentStep();
 		if(agent.isDead()){
-			disableButtons(new JButton[]{stopButton,stepButton,autoStepButton});
+			disableMovementButtons();
 			agentHandler.setAutoStep(false);
 		}
 		else if(grid.isSolved()){
-			disableButtons(new JButton[]{stopButton,stepButton,autoStepButton});
+			disableMovementButtons();
 			agentHandler.setAutoStep(false);
 		}
 	}
 	
-	protected void disableButtons(JButton[] list){
+	public static void disableButtons(JButton[] list){
 		for(JButton j: list)
 			j.setEnabled(false);
 	}
 	
-	protected void enableButtons(JButton[] list){
+	public static void enableButtons(JButton[] list){
 		for(JButton j: list)
 			j.setEnabled(true);
+	}
+	
+	public static void disableMovementButtons(){
+		disableButtons(new JButton[]{stopButton,stepButton,autoStepButton});
 	}
 }
