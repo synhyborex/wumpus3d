@@ -33,8 +33,13 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
    private Grid map;
    
    //camera variables
+   //set up camera
+   int mapWidth, mapHeight;
+   int distance; //how far away the camera is
+   //int[] midPoint; //where the camera will look
    private float rotateX = 0.0f, rotateY = 0.0f, zoomZ = 0.0f;
    private int startX, endX, startY, endY, startZ, endZ;
+   private int testRot = 0;
    
    // Textures
    //wall texture
@@ -291,11 +296,11 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
       glu.gluLookAt(//eye
 	    		  		midPoint[0]/*+(float)(0.75*(distance/3.25))*/, 
 	    		  			midPoint[1]+(float)(0.75*(distance/3)), 
-	    		  			distance,
+	    		  			distance+zoomZ,
     		  		//center
 	    		  			midPoint[0], midPoint[1], 0,
     		  		//up
-	    		  			0, 0, -1);
+	    		  			0, 1, 0);
  
       // Enable the model-view transform
       gl.glMatrixMode(GL_MODELVIEW);
@@ -334,9 +339,26 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	   GL2 gl = drawable.getGL().getGL2();  // get the OpenGL 2 graphics context
 	      gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear color and depth buffers
 	      
-	      gl.glRotatef(90, 0f, 0f, 1f);
+	      //set up camera
+	      mapWidth = map.getWidth();
+	      mapHeight = map.getHeight();
+	      distance = -(mapWidth+mapHeight/2);
+	      int[] midPoint = {-mapWidth/2,-mapHeight/2};
+	    //set camera
+	      glu.gluLookAt(//eye
+		    		  		midPoint[0]/*+(float)(0.75*(distance/3.25))*/, 
+		    		  			midPoint[1]+(float)(0.75*(distance/3)), 
+		    		  			distance+zoomZ,
+	    		  		//center
+		    		  			midPoint[0], midPoint[1], 0,
+	    		  		//up
+		    		  			0, 1, 0);
+	      
+	      //gl.glLoadIdentity();
+	      //gl.glRotatef(testRot, 1f, 0f, 1f);
 	      drawMap(drawable);
 	      update();
+	      testRot += 5;
    }
    
    private void drawMap(GLAutoDrawable drawable){
@@ -368,7 +390,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 				drawMinion(drawable,mapNode);
 			else drawDeadMinion(drawable,mapNode);
 		}
-		if(mapNode.hasFairy()){
+		if(mapNode.hasFairy() && !(mapNode.hasGoal() || mapNode.hasAgent())){
 			drawFairy(drawable,mapNode);
 		}
 		if(mapNode.hasAgent()){

@@ -10,7 +10,7 @@ import java.util.*;
  * @author Bhargav
  *
  */
-public abstract class Agent extends Thread {
+public abstract class Agent {
 	//agent directional variables
 	public static final int NORTH = 0;
 	public static final int EAST = 1;
@@ -153,11 +153,11 @@ public abstract class Agent extends Thread {
 	/**
 	 * Defines what an <code>Agent</code> will do each step
 	 */
-	public void step(){
+	public void agentStep(){
 		if(fairy != null && !fairyFoundAllGoals()){
-			nextSearchStep();
+			searchStep();
 		}
-		else nextStep();
+		else step();
 		
 		//end of method
 		if(goalsSoFar == grid.getNumGoals())
@@ -167,7 +167,7 @@ public abstract class Agent extends Thread {
 	/**
 	 * The next step the <code>Agent</code> will take. This method will be written by the student.
 	 */
-	public abstract void nextStep();
+	public abstract void step();
 	
 	/**
 	 * The reset method that students will implement in case they need any variables reset.
@@ -179,7 +179,7 @@ public abstract class Agent extends Thread {
 	 * This method is not abstract, in order to allow for the instructor to provide
 	 * <code>Agent</code> files that do not require <code>nextSearchStep()</code> to be included for the assignment. 
 	 */
-	public void nextSearchStep(){}
+	public void searchStep(){}
 	
 	/**
 	 * Defines the system behavior when all objectives have been completed
@@ -252,7 +252,7 @@ public abstract class Agent extends Thread {
 	public int moveForward(){
 		movementCost += MOVE_COST;
 		try{
-			sleep(ApplicationWindow.CURRENT_DELAY);
+			Thread.sleep(ApplicationWindow.CURRENT_DELAY);
 		}
 		catch(InterruptedException e){
 			e.printStackTrace();
@@ -326,7 +326,7 @@ public abstract class Agent extends Thread {
 		else HEADING++;
 		
 		try{
-			sleep(ApplicationWindow.CURRENT_DELAY);
+			Thread.sleep(ApplicationWindow.CURRENT_DELAY);
 		}
 		catch(InterruptedException e){
 			e.printStackTrace();
@@ -343,7 +343,7 @@ public abstract class Agent extends Thread {
 		else HEADING--;
 		
 		try{
-			sleep(ApplicationWindow.CURRENT_DELAY);
+			Thread.sleep(ApplicationWindow.CURRENT_DELAY);
 		}
 		catch(InterruptedException e){
 			e.printStackTrace();
@@ -790,6 +790,14 @@ public abstract class Agent extends Thread {
 		if(fairy != null)
 			return MAX_POINTS - movementCost - fairy.getSearchCost();
 		else return MAX_POINTS - movementCost;
+	}
+	
+	/**
+	 * Returns whether or not the <code>Agent</code> has a <code>Fairy</code>
+	 * @return <code>true</code> if the <code>Agent</code> has a <code>Fairy</code>, <code>false</code> otherwise
+	 */
+	public boolean hasFairy(){
+		return !(fairy == null);
 	}
 	
 	/**

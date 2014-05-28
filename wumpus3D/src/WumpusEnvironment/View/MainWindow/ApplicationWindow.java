@@ -76,9 +76,8 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 	//GLenum j;
 	
 	protected static Grid grid;
-	protected Grid startGrid;
 	protected static Agent agent;
-	protected Agent startAgent;
+	protected AgentHandler agentHandler;
 	//protected final GLresources gr;
 	
 	//the main panel
@@ -104,7 +103,6 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 	JButton stepButton;
 	JButton autoStepButton;
 	JButton resetButton;
-	boolean autoRun; //whether or not we're doing autostep
 	
 	//main view
 	JSplitPane mainView; //the main view for the log and map
@@ -112,10 +110,12 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 	JPanel logPane; //the pane that will hold both the log and the save button
 	//the map pane
 	JPanel mapPane; //the map pane
+	GLJPanel mapView;
 	
 	public ApplicationWindow(){
 		super("Wumpus Environment 3D");
 		grid = Grid.getInstance();
+		agentHandler = new AgentHandler(agent,grid);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setMinimumSize(new Dimension(g_width, g_height));
 		
@@ -157,6 +157,7 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 		
 		//option for choosing agent
 		if(source.equals(newSessionOption)){
+			agentHandler.setAutoStep(false);
 			agentChooser = new JFileChooser("./Agents"); //the file chooser for the Agent
 			agentChooser.setDialogTitle("Select an Agent");
 			agentChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -185,6 +186,7 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 	        }
 		}
 		else if(source.equals(chooseMapOption)){
+			agentHandler.setAutoStep(false);
 			mapChooser = new JFileChooser("./Maps"); //the file chooser for the map
 			mapChooser.setDialogTitle("Select a Map");
 			mapChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -211,7 +213,7 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 		else if(source.equals(stopButton)){
 			stopButton.setEnabled(false);
 			enableButtons(new JButton[]{stepButton,autoStepButton});
-			autoRun = false;
+			agentHandler.setAutoStep(false);
 		}
 		else if(source.equals(stepButton)){
 			nextStep();
@@ -219,15 +221,15 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 		else if(source.equals(autoStepButton)){
 			stopButton.setEnabled(true);
 			disableButtons(new JButton[]{stepButton,autoStepButton});
-			autoRun = true;
-			for(;;)
+			agentHandler.setAutoStep(true);
+			/*for(;;)
 				if(autoRun){
 					nextStep();
 				}
-				else break;
+				else break;*/
 		}
 		else if(source.equals(resetButton)){
-			autoRun = false;
+			agentHandler.setAutoStep(false);
 			
 			//set fresh grid
 			grid = MapLoader.loadMapFromFile(mapChooser.getSelectedFile());
@@ -247,6 +249,7 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
     }
 	
 	protected void addOtherMenus(){
+		agentHandler.setAutoStep(false);
 		//add the map menu
 		menuBar.removeAll(); //clear all menus out of the menu bar
 		mapMenu = new JMenu("Map");
@@ -261,6 +264,7 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 	}
 	
 	protected void showMainWindowContents(){
+		agentHandler.setAutoStep(false);
 		mainWindow.removeAll();
 		//create slider and movement buttons
 		sliderAndButtons = new JPanel();
@@ -283,7 +287,7 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 		stopButton = new JButton("STOP");
 		stepButton = new JButton("STEP");
 		autoStepButton = new JButton("AUTO STEP");
-		autoRun = false;
+		agentHandler.setAutoStep(false);
 		resetButton = new JButton("RESET");
 		disableButtons(new JButton[]{stopButton,stepButton,autoStepButton,resetButton});
 		stopButton.addActionListener(this); //so we don't forget to do it later
@@ -316,12 +320,13 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 	}
 	
 	protected void showMap(boolean fairy){
-		autoRun = false;
+		agentHandler.setAutoStep(false);
 		agent.privateReset();
 		agent.setStartLocation(grid.getAgentLocation());
 		if(fairy){
 			agent.setFairy(new Fairy(grid,grid.getAgentLocation()));
 		}
+		agentHandler = new AgentHandler(agent,grid); //create the agent handler thread
 		//print start of log
 		Logger.clear(); //clear any text that was there before
 		Logger.printMapStart();
@@ -332,7 +337,7 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 		stopButton.setEnabled(false);
 		
 		// Create the OpenGL rendering canvas
-        GLJPanel mapView = new MapCanvas(MapCanvas.MAP_VIEW);
+        mapView = new MapCanvas(MapCanvas.MAP_VIEW);
         //GLJPanel agentView = new MapCanvas(MapCanvas.AGENT_VIEW);
         //canvas.setMinimumSize(new Dimension(200, 200));
  
@@ -361,21 +366,19 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
         mapAnimator.start(); // start the animation loop
         //agentMapAnimator.start();
 		mainView.setLeftComponent(mapView);
+		//now that everything is set up, start the agent handling thread
+		agentHandler.start();
 	}
 	
 	protected void nextStep(){
-		AgentHandler.agentStep(agent, grid, MapLoader.isSearchMap());
+		agentHandler.agentStep();
 		if(agent.isDead()){
-			Logger.writeToLog("* You died! Better luck next time. *\r\n");
-			Logger.writeToLog("*** GAME OVER ***\r\n");
 			disableButtons(new JButton[]{stopButton,stepButton,autoStepButton});
-			autoRun = false;
+			agentHandler.setAutoStep(false);
 		}
 		else if(grid.isSolved()){
-			Logger.writeToLog("* You found all the gold! *\r\n");
-			Logger.writeToLog("*** GAME OVER ***\r\n");
 			disableButtons(new JButton[]{stopButton,stepButton,autoStepButton});
-			autoRun = false;
+			agentHandler.setAutoStep(false);
 		}
 	}
 	
