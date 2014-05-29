@@ -1,19 +1,59 @@
 package WumpusEnvironment.View.MainWindow;
 
-import java.awt.event.*;
+import static javax.media.opengl.GL.GL_COLOR_BUFFER_BIT;
+import static javax.media.opengl.GL.GL_DEPTH_BUFFER_BIT;
+import static javax.media.opengl.GL.GL_DEPTH_TEST;
+import static javax.media.opengl.GL.GL_FRONT;
+import static javax.media.opengl.GL.GL_LEQUAL;
+import static javax.media.opengl.GL.GL_LINEAR;
+import static javax.media.opengl.GL.GL_LINEAR_MIPMAP_LINEAR;
+import static javax.media.opengl.GL.GL_NEAREST;
+import static javax.media.opengl.GL.GL_NICEST;
+import static javax.media.opengl.GL.GL_TEXTURE_2D;
+import static javax.media.opengl.GL.GL_TEXTURE_MAG_FILTER;
+import static javax.media.opengl.GL.GL_TEXTURE_MIN_FILTER;
+import static javax.media.opengl.GL.GL_TRIANGLES;
+import static javax.media.opengl.GL2.GL_S;
+import static javax.media.opengl.GL2.GL_SPHERE_MAP;
+import static javax.media.opengl.GL2.GL_T;
+import static javax.media.opengl.GL2ES1.GL_PERSPECTIVE_CORRECTION_HINT;
+import static javax.media.opengl.GL2ES1.GL_TEXTURE_GEN_MODE;
+import static javax.media.opengl.GL2GL3.GL_QUADS;
+import static javax.media.opengl.fixedfunc.GLLightingFunc.GL_AMBIENT;
+import static javax.media.opengl.fixedfunc.GLLightingFunc.GL_DIFFUSE;
+import static javax.media.opengl.fixedfunc.GLLightingFunc.GL_LIGHT1;
+import static javax.media.opengl.fixedfunc.GLLightingFunc.GL_LIGHTING;
+import static javax.media.opengl.fixedfunc.GLLightingFunc.GL_POSITION;
+import static javax.media.opengl.fixedfunc.GLLightingFunc.GL_SHININESS;
+import static javax.media.opengl.fixedfunc.GLLightingFunc.GL_SMOOTH;
+import static javax.media.opengl.fixedfunc.GLLightingFunc.GL_SPECULAR;
+import static javax.media.opengl.fixedfunc.GLMatrixFunc.GL_MODELVIEW;
+import static javax.media.opengl.fixedfunc.GLMatrixFunc.GL_PROJECTION;
+
+import java.awt.Font;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.io.IOException;
 
-import javax.media.opengl.*;
-import javax.media.opengl.awt.*;
-import javax.media.opengl.glu.*;
+import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLEventListener;
+import javax.media.opengl.GLException;
+import javax.media.opengl.awt.GLJPanel;
+import javax.media.opengl.glu.GLU;
+import javax.media.opengl.glu.GLUquadric;
 
-import com.jogamp.opengl.util.texture.*;
+import WumpusEnvironment.Model.Map.Grid;
+import WumpusEnvironment.Model.Map.Node;
 
-import WumpusEnvironment.Model.Agent.Agent;
-import WumpusEnvironment.Model.Map.*;
-
-import static javax.media.opengl.GL.*;  // GL constants
-import static javax.media.opengl.GL2.*; // GL2 constants
+import com.jogamp.opengl.util.awt.TextRenderer;
+import com.jogamp.opengl.util.texture.Texture;
+import com.jogamp.opengl.util.texture.TextureCoords;
+import com.jogamp.opengl.util.texture.TextureIO;
+// GL constants
+// GL2 constants
  
 /**
  * JOGL 2.0 Program Template (GLCanvas)
@@ -41,6 +81,9 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
    private int startX, endX, startY, endY, startZ, endZ;
    private int testRot = 0;
    
+   //text rendering
+   TextRenderer renderer;
+   
    // Textures
    //wall texture
    private Texture textureWall;
@@ -50,8 +93,8 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
    // top, bottom, left and right coordinates.
    private float textureWallTop, textureWallBottom, textureWallLeft, textureWallRight;
    
-   //floor texture
-   private Texture textureFloor;
+   //floor textures
+   private Texture textureFloor, textureFloorEvaluated;
    private String textureFloorFileName = "images/legacy/floor.gif";
    private String textureFloorFileType = ".gif";
    // Texture image flips vertically. Shall use TextureCoords class to retrieve the
@@ -71,9 +114,6 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
    private Texture textureDeadMinion;
    private String textureDeadEnemyFileName = "images/dead_wumpus.png";
    private String textureDeadEnemyFileType = ".png";
-   // Texture image flips vertically. Shall use TextureCoords class to retrieve the
-   // top, bottom, left and right coordinates.
-   private float textureDeadEnemyTop, textureDeadEnemyBottom, textureDeadEnemyLeft, textureDeadEnemyRight;   
    
    //agent texture
    private Texture textureAgent;
@@ -111,6 +151,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
       gl.glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // best perspective correction
       gl.glShadeModel(GL_SMOOTH); // blends colors nicely, and smoothes out lighting
       
+      renderer = new TextRenderer(new Font("SansSerif", Font.BOLD, 36));      
       
       // Set The Texture Generation Mode For S To Sphere Mapping (NEW)
       gl.glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
@@ -152,6 +193,12 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
          textureFloor = TextureIO.newTexture(
                getClass().getClassLoader().getResource(textureFloorFileName), // relative to project root 
                false, textureFloorFileType);
+         
+         textureFloorFileName = "images/floor_evaluated.png";
+         textureFloorFileType = ".png";
+         textureFloorEvaluated = TextureIO.newTexture(
+                 getClass().getClassLoader().getResource(textureFloorFileName), // relative to project root 
+                 false, textureFloorFileType);
 
          // Use linear filter for texture if image is larger than the original texture
          gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -216,14 +263,6 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
          // Use linear filter for texture if image is smaller than the original texture
          gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
          gl.glGenerateMipmap(GL_TEXTURE_2D);
-
-         // Texture image flips vertically. Shall use TextureCoords class to retrieve
-         // the top, bottom, left and right coordinates, instead of using 0.0f and 1.0f.
-         TextureCoords textureCoords = textureDeadWumpus.getImageTexCoords();
-         textureDeadEnemyTop = textureCoords.top();
-         textureDeadEnemyBottom = textureCoords.bottom();
-         textureDeadEnemyLeft = textureCoords.left();
-         textureDeadEnemyRight = textureCoords.right();
       } catch (GLException e) {
          e.printStackTrace();
       } catch (IOException e) {
@@ -344,21 +383,23 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	      mapHeight = map.getHeight();
 	      distance = -(mapWidth+mapHeight/2);
 	      int[] midPoint = {-mapWidth/2,-mapHeight/2};
-	    //set camera
-	      glu.gluLookAt(//eye
-		    		  		midPoint[0]/*+(float)(0.75*(distance/3.25))*/, 
+	      //set camera
+	      /*glu.gluLookAt(//eye
+		    		  			midPoint[0], 
 		    		  			midPoint[1]+(float)(0.75*(distance/3)), 
 		    		  			distance+zoomZ,
 	    		  		//center
 		    		  			midPoint[0], midPoint[1], 0,
 	    		  		//up
-		    		  			0, 1, 0);
+		    		  			0, 1, 0);*/
 	      
 	      //gl.glLoadIdentity();
 	      //gl.glRotatef(testRot, 1f, 0f, 1f);
 	      drawMap(drawable);
 	      update();
 	      testRot += 5;
+	      //zoomZ = -10;
+	      //if(zoomZ > -100) reshape(drawable, 0, 0, this.getWidth(), this.getHeight());
    }
    
    private void drawMap(GLAutoDrawable drawable){
@@ -404,12 +445,12 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
    private void drawFloor(GLAutoDrawable drawable, Node mapNode) {
 	   GL2 gl = drawable.getGL().getGL2();
 	   textureFloor.enable(gl);
-	   textureFloor.bind(gl);
+	   textureFloorEvaluated.enable(gl);
 	   gl.glPushMatrix();
 	   gl.glLoadIdentity();                // reset the current model-view matrix
 	   if(mapNode.isEvaluated()) //show what the agent has knowledge of
-		   gl.glColor3f(1.0f, 1.0f, 0.0f);
-	   else gl.glColor3f(1.0f, 1.0f, 1.0f);
+		   textureFloorEvaluated.bind(gl);
+	   else textureFloor.bind(gl);
        gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); //translate to location on map
        gl.glNormal3f(0f,0f,-1f);
        gl.glBegin(GL_QUADS); // of the color cube
@@ -423,7 +464,18 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	      gl.glVertex3f(-0.5f, 0.5f, 0.5f);  // top-left of the texture and quad
 	   gl.glEnd();
 	   textureFloor.disable(gl);
+	   textureFloorEvaluated.disable(gl);
 	   gl.glPopMatrix();
+	   
+	   /*gl.glPushMatrix();
+	   gl.glLoadIdentity();
+	   renderer.begin3DRendering();
+	    // optionally set the color
+	    renderer.setColor(1.0f, 0.2f, 0.2f, 0.8f);
+	    renderer.draw3D("Text to draw", mapNode.getX(), mapNode.getY(),-1f, 1f);
+	    // ... more draw commands, color changes, etc.
+	    renderer.end3DRendering();
+	    gl.glPopMatrix();*/
 		
 	}
    
@@ -466,7 +518,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	    	case 2: //SOUTH
 	    		rot += 0; //the base amount!
 	    		break;
-	    	case 3:
+	    	case 3: //WEST
 	    		rot += 90;
 	    		break;
 	    }
@@ -609,8 +661,8 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	      // Binds this texture to the current GL context.
 	      textureWall.bind(gl);  // same as gl.glBindTexture(texture.getTarget(), texture.getTextureObject());
 	      gl.glLoadIdentity();                // reset the current model-view matrix
-	      gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); //translate to location on map
-	      //gl.glRotatef(angleCube, 1.0f, 1.0f, 1.0f); // rotate about the x, y and z-axes
+	      gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.125f); //translate to location on map
+	      gl.glScalef(1f, 1f, 0.75f); //make the walls a little shorter
 	      gl.glBegin(GL_QUADS); // of the color cube
 	 	 
 	      // Front Face
@@ -724,30 +776,6 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	      gl.glEnd(); // of the pyramid
 	      textureWall.disable(gl);
 	      gl.glPopMatrix();
-	}
-	
-	private void applyDeadEnemyTexture(GLAutoDrawable drawable, Node mapNode){
-		GL2 gl = drawable.getGL().getGL2();
-		gl.glEnable(GL.GL_BLEND);
-       gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
-	   textureDeadWumpus.enable(gl);
-	   textureDeadWumpus.bind(gl);
-	   gl.glPushMatrix();
-	   gl.glLoadIdentity();                // reset the current model-view matrix
-	   gl.glColor3f(1.0f, 1.0f, 1.0f);
-       gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); //translate to location on map
-       gl.glBegin(GL_QUADS); // of the color cube
-	      gl.glTexCoord2f(textureDeadEnemyLeft, textureDeadEnemyBottom);
-	      gl.glVertex3f(-0.5f, -0.5f, 0.5f); // bottom-left of the texture and quad
-	      gl.glTexCoord2f(textureDeadEnemyRight, textureDeadEnemyBottom);
-	      gl.glVertex3f(0.5f, -0.5f, 0.5f);  // bottom-right of the texture and quad
-	      gl.glTexCoord2f(textureDeadEnemyRight, textureDeadEnemyTop);
-	      gl.glVertex3f(0.5f, 0.5f, 0.5f);   // top-right of the texture and quad
-	      gl.glTexCoord2f(textureDeadEnemyLeft, textureDeadEnemyTop);
-	      gl.glVertex3f(-0.5f, 0.5f, 0.5f);  // top-left of the texture and quad
-	   gl.glEnd();
-	   textureDeadWumpus.disable(gl);
-	   gl.glDisable(GL.GL_BLEND);
 	}
    
    private void update() {
