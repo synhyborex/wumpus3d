@@ -8,9 +8,7 @@ import static javax.media.opengl.fixedfunc.GLMatrixFunc.GL_MODELVIEW;
 import static javax.media.opengl.fixedfunc.GLMatrixFunc.GL_PROJECTION;
 
 import java.awt.Font;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
+import java.awt.event.*;
 import java.io.IOException;
 
 import javax.media.opengl.GL2;
@@ -37,7 +35,7 @@ import com.jogamp.opengl.util.texture.TextureIO;
  * It also handles the OpenGL events to render graphics.
  */
 @SuppressWarnings("serial")
-public class MapCanvas extends GLJPanel implements GLEventListener, MouseListener, MouseMotionListener {
+public class MapCanvas extends GLJPanel implements GLEventListener, MouseListener, MouseMotionListener, MouseWheelListener {
 	public static final int MAP_VIEW = 0;
 	public static final int AGENT_VIEW = 0;
 	private int view;
@@ -52,9 +50,13 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
    //set up camera
    int mapWidth, mapHeight;
    int distance; //how far away the camera is
+   float[] eyeVec;
+   float[] eyeUnitVec;
    //int[] midPoint; //where the camera will look
-   private float rotateX = 0.0f, rotateY = 0.0f, zoomZ = 0.0f;
-   private int startX, endX, startY, endY, startZ, endZ;
+   private float rotateX = 0.0f, rotateY = 0.0f;
+   boolean zoomChanged = false;
+   private int startX, endX, startY, endY, endZ;
+   float prevZ;
    private int testRot = 0;
    
    //text rendering
@@ -106,8 +108,21 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
       this.addGLEventListener(this);
       this.addMouseListener(this);
       this.addMouseMotionListener(this);
+      this.addMouseWheelListener(this);
       map = Grid.getInstance();
       this.view = view;
+      
+      //camera stuff
+      int mapWidth = map.getWidth(), mapHeight = map.getHeight();
+      int distance = -(mapWidth+mapHeight/2);
+      int[] midPoint = {-mapWidth/2,-mapHeight/2};
+      eyeVec = new float[3];
+      eyeVec[0] = midPoint[0];
+      eyeVec[1] = midPoint[1]+(float)(1.25f*(distance/3));
+      eyeVec[2] = distance/1.05f;
+      eyeUnitVec = new float[3];
+      eyeUnitVec = getUnitVector(eyeVec);
+      for(float f: eyeUnitVec) f += 0.01f;
    }
  
    // ------ Implement methods declared in GLEventListener ------
@@ -303,9 +318,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
       int[] midPoint = {-mapWidth/2,-mapHeight/2};
       //set camera
       glu.gluLookAt(//eye
-	    		  		midPoint[0]/*+(float)(0.75*(distance/3.25))*/, 
-	    		  			midPoint[1]+(float)(0.75*(distance/3)), 
-	    		  			distance+zoomZ,
+    		  				eyeVec[0], eyeVec[1], eyeVec[2],
     		  		//center
 	    		  			midPoint[0], midPoint[1], 0,
     		  		//up
@@ -369,7 +382,11 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	      update();
 	      testRot += 5;
 	      //zoomZ = -10;
-	      //if(zoomZ > -100) reshape(drawable, 0, 0, this.getWidth(), this.getHeight());
+	      if(zoomChanged){
+	    	  //zoomZ = -0.1f;
+	    	  zoomChanged = false;
+	    	  reshape(drawable, 0, 0, this.getWidth(), this.getHeight());
+	      }
    }
    
    private void drawMap(GLAutoDrawable drawable){
@@ -764,6 +781,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 		e.translatePoint(-startX,-startY);
 		//rotateX = e.getX();
 		//rotateY = e.getY();
+		//zoomChanged += e.getX();
 	}
 	
 	@Override
@@ -780,12 +798,14 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	public void mousePressed(MouseEvent e) {
 		startX = e.getX();
 		startY = e.getY();
+		//startZ = e.getX();
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		endX = e.getX();
 		endY = e.getY();
+		//endZ = e.getX();
 		//rotateX = endX-startX;
 		//rotateY = endY-startY;
 	}
@@ -798,5 +818,52 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	@Override
 	public void mouseExited(MouseEvent e) {
 		// do nothing for now
+	}
+
+	@Override
+	public void mouseWheelMoved(MouseWheelEvent e) {
+		float zoom = 1f;
+		System.out.println(eyeVec[0] + " " + eyeVec[1] + " " + eyeVec[2]);
+		float[] unitEye = getUnitVector(eyeVec);
+		System.out.println(eyeUnitVec[0] + " " + eyeUnitVec[1] + " " + eyeUnitVec[2] + "\n");
+		if(e.getWheelRotation() < 0){ //scrolled up
+			zoomChanged  = true;
+			//changeEyeVec(zoom);
+			eyeVec[2] -= zoom*eyeUnitVec[2];
+		}
+		else if(e.getWheelRotation() > 0){ //scrolled down
+			zoomChanged = true;
+			//changeEyeVec(-zoom);
+			eyeVec[2] += zoom*eyeUnitVec[2];
+		}
+		
+	}
+	
+	private void changeEyeVec(float value){
+		float[] unitEye = getUnitVector(eyeVec);
+		eyeVec[0] += value*unitEye[0];
+		eyeVec[1] += value*unitEye[1];
+		eyeVec[2] += value*unitEye[2];
+		System.out.println(eyeVec[0] + " " + eyeVec[1] + " " + eyeVec[2]);
+	}
+	
+	private float[] getUnitVector(float[] vec){
+		float[] ret = vec;
+		//get length of vector
+		float length = (float)Math.sqrt(Math.pow(ret[0], 2) + Math.pow(ret[1], 2) + Math.pow(ret[2], 2));
+		
+		//don't want to divide by 0
+		if(length == 0){ 
+			ret[0] = 0;
+			ret[1] = 0;
+			ret[2] = 0;
+			return ret;
+		}
+		
+		//divide all elements by length
+		ret[0] /= length;
+		ret[1] /= length;
+		ret[2] /= length;
+		return ret;
 	}
 }

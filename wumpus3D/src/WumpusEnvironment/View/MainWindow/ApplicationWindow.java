@@ -326,7 +326,6 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 			} catch (InterruptedException e1) {
 			}
 		}
-		System.out.println(Thread.activeCount());
 		if(agentHandler != null) agentHandler.setAutoStep(false);
 		agent.setStartLocation(grid.getAgentLocation());
 		agent.privateReset();
@@ -334,7 +333,6 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 			agent.setFairy(new Fairy(grid,grid.getAgentLocation()));
 		}
 		agentHandler = new AgentHandler(agent,grid); //create the agent handler thread
-		System.out.println(Thread.activeCount()+"\n");
 		//print start of log
 		Logger.clear(); //clear any text that was there before
 		Logger.printMapStart();
