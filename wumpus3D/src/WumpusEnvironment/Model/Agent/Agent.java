@@ -154,7 +154,7 @@ public abstract class Agent {
 	 * Defines what an <code>Agent</code> will do each step
 	 */
 	public void agentStep(){
-		if(fairy != null && !fairyFoundAllGoals()){
+		if(hasFairy() && !fairyFoundAllGoals()){
 			searchStep();
 		}
 		else step();
@@ -255,7 +255,6 @@ public abstract class Agent {
 			Thread.sleep(ApplicationWindow.CURRENT_DELAY);
 		}
 		catch(InterruptedException e){
-			e.printStackTrace();
 		}
 		int addToX = 0, addToY = 0;
 		switch(HEADING){
@@ -329,7 +328,6 @@ public abstract class Agent {
 			Thread.sleep(ApplicationWindow.CURRENT_DELAY);
 		}
 		catch(InterruptedException e){
-			e.printStackTrace();
 		}
 	}
 	
@@ -346,7 +344,6 @@ public abstract class Agent {
 			Thread.sleep(ApplicationWindow.CURRENT_DELAY);
 		}
 		catch(InterruptedException e){
-			e.printStackTrace();
 		}
 	}
 	
@@ -787,7 +784,7 @@ public abstract class Agent {
 	 * @return
 	 */
 	public int getPerformanceValue(){
-		if(fairy != null)
+		if(hasFairy())
 			return MAX_POINTS - movementCost - fairy.getSearchCost();
 		else return MAX_POINTS - movementCost;
 	}

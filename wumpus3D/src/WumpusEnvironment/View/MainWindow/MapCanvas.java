@@ -1,32 +1,9 @@
 package WumpusEnvironment.View.MainWindow;
 
-import static javax.media.opengl.GL.GL_COLOR_BUFFER_BIT;
-import static javax.media.opengl.GL.GL_DEPTH_BUFFER_BIT;
-import static javax.media.opengl.GL.GL_DEPTH_TEST;
-import static javax.media.opengl.GL.GL_FRONT;
-import static javax.media.opengl.GL.GL_LEQUAL;
-import static javax.media.opengl.GL.GL_LINEAR;
-import static javax.media.opengl.GL.GL_LINEAR_MIPMAP_LINEAR;
-import static javax.media.opengl.GL.GL_NEAREST;
-import static javax.media.opengl.GL.GL_NICEST;
-import static javax.media.opengl.GL.GL_TEXTURE_2D;
-import static javax.media.opengl.GL.GL_TEXTURE_MAG_FILTER;
-import static javax.media.opengl.GL.GL_TEXTURE_MIN_FILTER;
-import static javax.media.opengl.GL.GL_TRIANGLES;
-import static javax.media.opengl.GL2.GL_S;
-import static javax.media.opengl.GL2.GL_SPHERE_MAP;
-import static javax.media.opengl.GL2.GL_T;
+import static javax.media.opengl.GL.*;
 import static javax.media.opengl.GL2ES1.GL_PERSPECTIVE_CORRECTION_HINT;
-import static javax.media.opengl.GL2ES1.GL_TEXTURE_GEN_MODE;
 import static javax.media.opengl.GL2GL3.GL_QUADS;
-import static javax.media.opengl.fixedfunc.GLLightingFunc.GL_AMBIENT;
-import static javax.media.opengl.fixedfunc.GLLightingFunc.GL_DIFFUSE;
-import static javax.media.opengl.fixedfunc.GLLightingFunc.GL_LIGHT1;
-import static javax.media.opengl.fixedfunc.GLLightingFunc.GL_LIGHTING;
-import static javax.media.opengl.fixedfunc.GLLightingFunc.GL_POSITION;
-import static javax.media.opengl.fixedfunc.GLLightingFunc.GL_SHININESS;
-import static javax.media.opengl.fixedfunc.GLLightingFunc.GL_SMOOTH;
-import static javax.media.opengl.fixedfunc.GLLightingFunc.GL_SPECULAR;
+import static javax.media.opengl.fixedfunc.GLLightingFunc.*;
 import static javax.media.opengl.fixedfunc.GLMatrixFunc.GL_MODELVIEW;
 import static javax.media.opengl.fixedfunc.GLMatrixFunc.GL_PROJECTION;
 
@@ -36,7 +13,6 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.io.IOException;
 
-import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
@@ -82,7 +58,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
    private int testRot = 0;
    
    //text rendering
-   TextRenderer renderer;
+   TextRenderer textRenderer;
    
    // Textures
    //wall texture
@@ -151,13 +127,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
       gl.glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // best perspective correction
       gl.glShadeModel(GL_SMOOTH); // blends colors nicely, and smoothes out lighting
       
-      renderer = new TextRenderer(new Font("SansSerif", Font.BOLD, 36));      
-      
-      // Set The Texture Generation Mode For S To Sphere Mapping (NEW)
-      gl.glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
-      
-      // Set The Texture Generation Mode For T To Sphere Mapping (NEW) 
-      gl.glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP); 
+      textRenderer = new TextRenderer(new Font("SansSerif", Font.BOLD, 36));
  
       // ----- Your OpenGL initialization code here -----
       // Load wall texture from image
@@ -467,15 +437,16 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	   textureFloorEvaluated.disable(gl);
 	   gl.glPopMatrix();
 	   
-	   /*gl.glPushMatrix();
 	   gl.glLoadIdentity();
-	   renderer.begin3DRendering();
+	   gl.glPushMatrix();
+	   textRenderer.begin3DRendering();
 	    // optionally set the color
-	    renderer.setColor(1.0f, 0.2f, 0.2f, 0.8f);
-	    renderer.draw3D("Text to draw", mapNode.getX(), mapNode.getY(),-1f, 1f);
+	    textRenderer.setColor(1.0f, 0.2f, 0.2f, 0.8f);
+	    textRenderer.draw3D("Text to draw", drawable.getWidth()/2f, drawable.getHeight()/2f,-5f, 1f);
 	    // ... more draw commands, color changes, etc.
-	    renderer.end3DRendering();
-	    gl.glPopMatrix();*/
+	    textRenderer.flush();
+	    textRenderer.end3DRendering();
+	    gl.glPopMatrix();
 		
 	}
    

@@ -7,18 +7,21 @@ import WumpusEnvironment.View.MainWindow.*;
 
 public class AgentHandler extends Thread {
 	private boolean autoStep;
+	private boolean stop;
 	private Agent agent;
 	private Grid grid;
 	
 	public AgentHandler(Agent agent, Grid grid){
 		autoStep = false;
+		stop = false;
 		this.agent = agent;
 		this.grid = grid;
 	}
 	
 	public void run(){
-		for(;;){
-			if(autoStep && !agent.isDead() && !grid.isSolved()){
+		while(!agent.isDead() && !grid.isSolved()){
+			if(stop) return;
+			if(autoStep){
 				agentStep();
 			}
 		}
@@ -26,6 +29,12 @@ public class AgentHandler extends Thread {
 	
 	public void setAutoStep(boolean value){
 		autoStep = value;
+	}
+	
+	public void stopThread(){stop = true;}
+	
+	public boolean isRunning(){
+		return autoStep && !agent.isDead() && !grid.isSolved();
 	}
 	
 	public void agentStep(){
@@ -54,7 +63,8 @@ public class AgentHandler extends Thread {
 			sleep(ApplicationWindow.CURRENT_DELAY);
 		}
 		catch(InterruptedException e){
-			e.printStackTrace();
+			currentThread().interrupt();
+			return;
 		}
 	}
 }
