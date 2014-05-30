@@ -51,12 +51,14 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
    int mapWidth, mapHeight;
    int distance; //how far away the camera is
    float[] eyeVec;
-   float[] eyeUnitVec;
    //int[] midPoint; //where the camera will look
    private float rotateX = 0.0f, rotateY = 0.0f;
    boolean zoomChanged = false;
+   boolean rotChanged = false;
    private int startX, endX, startY, endY, endZ;
    float prevZ;
+   float radius, startAngle, endAngle;
+   float[] midPoint;
    private int testRot = 0;
    
    //text rendering
@@ -115,14 +117,17 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
       //camera stuff
       int mapWidth = map.getWidth(), mapHeight = map.getHeight();
       int distance = -(mapWidth+mapHeight/2);
-      int[] midPoint = {-mapWidth/2,-mapHeight/2};
+      midPoint = new float[2];
+      midPoint[0] = -mapWidth/2;
+      midPoint[1] = -mapHeight/2;
+      
       eyeVec = new float[3];
       eyeVec[0] = midPoint[0];
-      eyeVec[1] = midPoint[1]+(float)(1.25f*(distance/3));
+      eyeVec[1] = midPoint[1]+(distance/3);
       eyeVec[2] = distance/1.05f;
-      eyeUnitVec = new float[3];
-      eyeUnitVec = getUnitVector(eyeVec);
-      for(float f: eyeUnitVec) f += 0.01f;
+      startAngle = 0;
+      endAngle = 0;
+      radius = getLength(eyeVec);
    }
  
    // ------ Implement methods declared in GLEventListener ------
@@ -313,14 +318,11 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
       glu.gluPerspective(45.0, aspect, 0.1, 100.0); // fovy, aspect, zNear, zFar
       
       //set up camera
-      int mapWidth = map.getWidth(), mapHeight = map.getHeight();
-      int distance = -(mapWidth+mapHeight/2);
-      int[] midPoint = {-mapWidth/2,-mapHeight/2};
       //set camera
       glu.gluLookAt(//eye
     		  				eyeVec[0], eyeVec[1], eyeVec[2],
     		  		//center
-	    		  			midPoint[0], midPoint[1], 0,
+	    		  			midPoint[0], midPoint[1], 0.5f,
     		  		//up
 	    		  			0, 1, 0);
  
@@ -361,35 +363,22 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	   GL2 gl = drawable.getGL().getGL2();  // get the OpenGL 2 graphics context
 	      gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear color and depth buffers
 	      
-	      //set up camera
-	      mapWidth = map.getWidth();
-	      mapHeight = map.getHeight();
-	      distance = -(mapWidth+mapHeight/2);
-	      int[] midPoint = {-mapWidth/2,-mapHeight/2};
-	      //set camera
-	      /*glu.gluLookAt(//eye
-		    		  			midPoint[0], 
-		    		  			midPoint[1]+(float)(0.75*(distance/3)), 
-		    		  			distance+zoomZ,
-	    		  		//center
-		    		  			midPoint[0], midPoint[1], 0,
-	    		  		//up
-		    		  			0, 1, 0);*/
-	      
-	      //gl.glLoadIdentity();
-	      //gl.glRotatef(testRot, 1f, 0f, 1f);
 	      drawMap(drawable);
 	      update();
 	      testRot += 5;
-	      //zoomZ = -10;
-	      if(zoomChanged){
-	    	  //zoomZ = -0.1f;
-	    	  zoomChanged = false;
+	      if(zoomChanged || rotChanged){
+	    	  if(zoomChanged)
+	    		  zoomChanged = false;
+	    	  if(rotChanged)
+	    		  rotChanged = false;
 	    	  reshape(drawable, 0, 0, this.getWidth(), this.getHeight());
 	      }
    }
    
    private void drawMap(GLAutoDrawable drawable){
+	   GL2 gl = drawable.getGL().getGL2();
+	   gl.glLoadIdentity();
+	   gl.glRotatef(90, 0f, 0f, 1f);
 	   for(int i = 0; i < map.getHeight(); i++){
 		   for(int j = 0; j < map.getWidth(); j++){
 			   Node mapNode = map.getNode(j,i);
@@ -434,7 +423,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	   textureFloor.enable(gl);
 	   textureFloorEvaluated.enable(gl);
 	   gl.glPushMatrix();
-	   gl.glLoadIdentity();                // reset the current model-view matrix
+	   //gl.glLoadIdentity();                // reset the current model-view matrix
 	   if(mapNode.isEvaluated()) //show what the agent has knowledge of
 		   textureFloorEvaluated.bind(gl);
 	   else textureFloor.bind(gl);
@@ -454,7 +443,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	   textureFloorEvaluated.disable(gl);
 	   gl.glPopMatrix();
 	   
-	   gl.glLoadIdentity();
+	   //gl.glLoadIdentity();
 	   gl.glPushMatrix();
 	   textRenderer.begin3DRendering();
 	    // optionally set the color
@@ -472,7 +461,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 		GL2 gl = drawable.getGL().getGL2();
 		gl.glPushMatrix();
 		gl.glColor3f(0.0f, 0.4f, 0.6f);
-	    gl.glLoadIdentity(); // reset the current model-view matrix
+	    //gl.glLoadIdentity(); // reset the current model-view matrix
 	    gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); //translate to location on map
 		GLUquadric quad = glu.gluNewQuadric();
 		glu.gluQuadricDrawStyle(quad, GLU.GLU_FILL);
@@ -490,7 +479,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 		textureAgent.enable(gl);
 		textureAgent.bind(gl);
 		gl.glPushMatrix();
-	    gl.glLoadIdentity();                // reset the current model-view matrix
+	    //gl.glLoadIdentity();                // reset the current model-view matrix
 	    gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); //translate to location on map
 	    gl.glRotatef(25,1f,0f,0f); //rotate a little upwards
 	    
@@ -531,7 +520,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 		textureDeadWumpus.bind(gl);
 		gl.glPushMatrix();
 		gl.glColor3f(1.0f, 0.549f, 0.0f); //dark orange
-	    gl.glLoadIdentity();                // reset the current model-view matrix
+	    //gl.glLoadIdentity();                // reset the current model-view matrix
 	    gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); //translate to location on map
 	    gl.glRotatef(25,1f,0f,0f); //rotate a little upwards
 		GLUquadric quad = glu.gluNewQuadric();
@@ -552,7 +541,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 		float z = 0.45f;
 		
 		gl.glPushMatrix();
-	    gl.glLoadIdentity();                // reset the current model-view matrix
+	    //gl.glLoadIdentity();                // reset the current model-view matrix
 	    gl.glNormal3f(0f,0f,-1f); //one normal for the whole thing
 	    gl.glColor3f(1f, 1f, 1f);
 	    gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), z); //translate to location on map
@@ -574,7 +563,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	   texturePit.enable(gl);
 	   texturePit.bind(gl);
 	   gl.glPushMatrix();
-	   gl.glLoadIdentity();                // reset the current model-view matrix
+	   //gl.glLoadIdentity();                // reset the current model-view matrix
 	   gl.glColor3f(1.0f, 1.0f, 1.0f);
 	   gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); //translate to location on map
        gl.glBegin(GL_QUADS); // of the color cube
@@ -598,7 +587,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 		textureWumpus.enable(gl);
 		textureWumpus.bind(gl);
 		gl.glPushMatrix();
-	    gl.glLoadIdentity();                // reset the current model-view matrix
+	    //gl.glLoadIdentity();                // reset the current model-view matrix
 	    gl.glColor3f(1.0f, 0.0f, 0.0f);	//red
 	    gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); //translate to location on map
 	    gl.glRotatef(25,1f,0f,0f); //rotate a little upwards
@@ -621,7 +610,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 		float z = 0.45f;
 		
 		gl.glPushMatrix();
-	    gl.glLoadIdentity();                // reset the current model-view matrix
+	    //gl.glLoadIdentity();                // reset the current model-view matrix
 	    gl.glNormal3f(0f,0f,-1f); //one normal for the whole thing
 	    gl.glColor3f(1f, 1f, 1f);
 	    gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), z); //translate to location on map
@@ -648,7 +637,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	      // gl.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_REPLACE);
 	      // Binds this texture to the current GL context.
 	      textureWall.bind(gl);  // same as gl.glBindTexture(texture.getTarget(), texture.getTextureObject());
-	      gl.glLoadIdentity();                // reset the current model-view matrix
+	      //gl.glLoadIdentity();                // reset the current model-view matrix
 	      gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.125f); //translate to location on map
 	      gl.glScalef(1f, 1f, 0.75f); //make the walls a little shorter
 	      gl.glBegin(GL_QUADS); // of the color cube
@@ -732,7 +721,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	      textureWall.enable(gl);
 	      textureWall.bind(gl);
 	      gl.glPushMatrix();
-		  gl.glLoadIdentity();                 // reset the model-view matrix
+		  //gl.glLoadIdentity();                 // reset the model-view matrix
 	      gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); // translate
 	      gl.glRotatef(anglePyramid, -0.2f, 0.0f, 1.0f); // rotate about the z-axis
 	      gl.glRotatef(-90, 1.0f, 0.0f, 0.0f); //flip so tip faces up
@@ -778,7 +767,33 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 
 	@Override
 	public void mouseDragged(MouseEvent e) {
-		e.translatePoint(-startX,-startY);
+		/*if(e.getX() > startX){ //mouse moved right
+			startX = e.getX();
+			rotChanged = true;
+			float c = (float) (Math.PI * Math.pow(radius, 2));
+			startAngle += (c/12)/360*2*Math.PI;
+			eyeVec[0] = (float) (midPoint[0] + Math.cos(startAngle) * radius);
+			eyeVec[1] = (float) (midPoint[1] + Math.sin(startAngle) * radius);
+			eyeVec[0] += 0.5f;
+		}
+		else if(e.getX() < startX){ //mouse moved left
+			startX = e.getX();
+			rotChanged = true;
+			startAngle -= 360f/360*2*Math.PI;
+			eyeVec[0] = (float) (midPoint[0] + Math.cos(startAngle) * radius);
+			eyeVec[1] = (float) (midPoint[1] + Math.sin(startAngle) * radius);
+			eyeVec[0] -= 0.5f;
+		}
+		/*if(e.getY() > startY){
+			startY = e.getY();
+			rotChanged = true;
+			eyeVec[1] += 0.5f;
+		}
+		else if(e.getY() < startY){
+			startY = e.getY();
+			rotChanged = true;
+			eyeVec[1] -= 0.5f;
+		}*/
 		//rotateX = e.getX();
 		//rotateY = e.getY();
 		//zoomChanged += e.getX();
@@ -822,35 +837,32 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 
 	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
-		float zoom = 1f;
-		System.out.println(eyeVec[0] + " " + eyeVec[1] + " " + eyeVec[2]);
+		float zoom = 0.5f;
 		float[] unitEye = getUnitVector(eyeVec);
-		System.out.println(eyeUnitVec[0] + " " + eyeUnitVec[1] + " " + eyeUnitVec[2] + "\n");
-		if(e.getWheelRotation() < 0){ //scrolled up
+		if(e.getWheelRotation() < 0){ //scrolled down, zoom out
 			zoomChanged  = true;
-			//changeEyeVec(zoom);
-			eyeVec[2] -= zoom*eyeUnitVec[2];
+			eyeVec[0] -= zoom*unitEye[0];
+			eyeVec[1] -= zoom*unitEye[1];
+			eyeVec[2] -= zoom*unitEye[2];
 		}
-		else if(e.getWheelRotation() > 0){ //scrolled down
+		else if(e.getWheelRotation() > 0){ //scrolled up, zoom in
 			zoomChanged = true;
-			//changeEyeVec(-zoom);
-			eyeVec[2] += zoom*eyeUnitVec[2];
+			if(eyeVec[2] + zoom*unitEye[2] < 0f){
+				eyeVec[0] += zoom*unitEye[0];
+				eyeVec[1] += zoom*unitEye[1];
+				eyeVec[2] += zoom*unitEye[2];
+			}
 		}
-		
 	}
 	
-	private void changeEyeVec(float value){
-		float[] unitEye = getUnitVector(eyeVec);
-		eyeVec[0] += value*unitEye[0];
-		eyeVec[1] += value*unitEye[1];
-		eyeVec[2] += value*unitEye[2];
-		System.out.println(eyeVec[0] + " " + eyeVec[1] + " " + eyeVec[2]);
+	private float getLength(float[] vec){
+		return (float)Math.sqrt(Math.pow(vec[0], 2) + Math.pow(vec[1], 2) + Math.pow(vec[2], 2));
 	}
 	
 	private float[] getUnitVector(float[] vec){
-		float[] ret = vec;
+		float[] ret = new float[3];
 		//get length of vector
-		float length = (float)Math.sqrt(Math.pow(ret[0], 2) + Math.pow(ret[1], 2) + Math.pow(ret[2], 2));
+		float length = getLength(vec);
 		
 		//don't want to divide by 0
 		if(length == 0){ 
@@ -861,9 +873,9 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 		}
 		
 		//divide all elements by length
-		ret[0] /= length;
-		ret[1] /= length;
-		ret[2] /= length;
+		ret[0] = vec[0]/length;
+		ret[1] = vec[1]/length;
+		ret[2] = vec[2]/length;
 		return ret;
 	}
 }

@@ -344,7 +344,7 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
         //canvas.setMinimumSize(new Dimension(200, 200));
  
         // Create a animator that drives canvas' display() at the specified FPS.
-        mapAnimator = new FPSAnimator(mapView, 60, true);
+        mapAnimator = new FPSAnimator(mapView, 80, true);
         //final FPSAnimator agentMapAnimator = new FPSAnimator(agentView, 60, true);
  
         // Create the top-level container frame
