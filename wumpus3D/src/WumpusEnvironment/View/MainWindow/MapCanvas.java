@@ -57,7 +57,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
    boolean rotChanged = false;
    private int startX, endX, startY, endY, endZ;
    float prevZ;
-   float radius, startAngle, endAngle;
+   float radius, circleAngle, upDownAngle;
    float[] midPoint;
    private int testRot = 0;
    
@@ -118,16 +118,18 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
       int mapWidth = map.getWidth(), mapHeight = map.getHeight();
       int distance = -(mapWidth+mapHeight/2);
       midPoint = new float[2];
-      midPoint[0] = -mapWidth/2;
-      midPoint[1] = -mapHeight/2;
+      //midPoint[0] = -mapWidth/2;
+      //midPoint[1] = -mapHeight/2;
+      midPoint[0] = 0f;
+      midPoint[1] = 0f;
       
       eyeVec = new float[3];
       eyeVec[0] = midPoint[0];
       eyeVec[1] = midPoint[1]+(distance/3);
       eyeVec[2] = distance/1.05f;
-      startAngle = 0;
-      endAngle = 0;
-      radius = getLength(eyeVec);
+      circleAngle = 0;
+      upDownAngle = 0;
+      radius = getVectorLength(eyeVec);
    }
  
    // ------ Implement methods declared in GLEventListener ------
@@ -377,8 +379,12 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
    
    private void drawMap(GLAutoDrawable drawable){
 	   GL2 gl = drawable.getGL().getGL2();
+	   //apply transformations to world
 	   gl.glLoadIdentity();
-	   gl.glRotatef(90, 0f, 0f, 1f);
+	   //gl.glRotatef(startAngle, 0f, 1f, 0f);
+	   gl.glRotatef(circleAngle, 0f, 0f, 1f);
+	   gl.glTranslatef((float)map.getWidth()/2f, (float)map.getHeight()/2f, 0f);
+	   //gl.glRotatef(startAngle, 0f, 0f, 1f);
 	   for(int i = 0; i < map.getHeight(); i++){
 		   for(int j = 0; j < map.getWidth(); j++){
 			   Node mapNode = map.getNode(j,i);
@@ -767,36 +773,36 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 
 	@Override
 	public void mouseDragged(MouseEvent e) {
-		/*if(e.getX() > startX){ //mouse moved right
+		if(e.getX() > startX){ //mouse moved right
 			startX = e.getX();
-			rotChanged = true;
-			float c = (float) (Math.PI * Math.pow(radius, 2));
-			startAngle += (c/12)/360*2*Math.PI;
-			eyeVec[0] = (float) (midPoint[0] + Math.cos(startAngle) * radius);
-			eyeVec[1] = (float) (midPoint[1] + Math.sin(startAngle) * radius);
-			eyeVec[0] += 0.5f;
+			circleAngle += 180f/360*2*Math.PI;
+			//eyeVec[0] = (float) (midPoint[0] + Math.cos(startAngle) * radius);
+			//eyeVec[1] = (float) (midPoint[1] + Math.sin(startAngle) * radius);
 		}
 		else if(e.getX() < startX){ //mouse moved left
 			startX = e.getX();
-			rotChanged = true;
-			startAngle -= 360f/360*2*Math.PI;
-			eyeVec[0] = (float) (midPoint[0] + Math.cos(startAngle) * radius);
-			eyeVec[1] = (float) (midPoint[1] + Math.sin(startAngle) * radius);
-			eyeVec[0] -= 0.5f;
+			circleAngle -= 180f/360*2*Math.PI;
+			//eyeVec[0] = (float) (midPoint[0] + Math.cos(startAngle) * radius);
+			//eyeVec[1] = (float) (midPoint[1] + Math.sin(startAngle) * radius);
 		}
-		/*if(e.getY() > startY){
+		if(e.getY() > startY){
 			startY = e.getY();
 			rotChanged = true;
-			eyeVec[1] += 0.5f;
+			upDownAngle += 180f/360*2*Math.PI;
+			//eyeVec[2] = (float) (midPoint[0] + Math.cos(upDownAngle) * radius);
+			eyeVec[1] = (float) (midPoint[1] + Math.sin(upDownAngle) * radius);
 		}
 		else if(e.getY() < startY){
 			startY = e.getY();
 			rotChanged = true;
-			eyeVec[1] -= 0.5f;
-		}*/
+			upDownAngle -= 180f/360*2*Math.PI;
+			//eyeVec[2] = (float) (midPoint[0] + Math.cos(upDownAngle) * radius);
+			eyeVec[1] = (float) (midPoint[1] + Math.sin(upDownAngle) * radius);
+			//eyeVec[2] -= 0.5f;
+		}
 		//rotateX = e.getX();
 		//rotateY = e.getY();
-		//zoomChanged += e.getX();
+		//zoomChanged += e.getX();*/
 	}
 	
 	@Override
@@ -846,8 +852,8 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 			eyeVec[2] -= zoom*unitEye[2];
 		}
 		else if(e.getWheelRotation() > 0){ //scrolled up, zoom in
-			zoomChanged = true;
 			if(eyeVec[2] + zoom*unitEye[2] < 0f){
+				zoomChanged = true;
 				eyeVec[0] += zoom*unitEye[0];
 				eyeVec[1] += zoom*unitEye[1];
 				eyeVec[2] += zoom*unitEye[2];
@@ -855,14 +861,14 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 		}
 	}
 	
-	private float getLength(float[] vec){
+	private float getVectorLength(float[] vec){
 		return (float)Math.sqrt(Math.pow(vec[0], 2) + Math.pow(vec[1], 2) + Math.pow(vec[2], 2));
 	}
 	
 	private float[] getUnitVector(float[] vec){
 		float[] ret = new float[3];
 		//get length of vector
-		float length = getLength(vec);
+		float length = getVectorLength(vec);
 		
 		//don't want to divide by 0
 		if(length == 0){ 
