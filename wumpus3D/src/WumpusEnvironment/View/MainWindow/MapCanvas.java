@@ -19,8 +19,8 @@ import javax.media.opengl.awt.GLJPanel;
 import javax.media.opengl.glu.GLU;
 import javax.media.opengl.glu.GLUquadric;
 
-import WumpusEnvironment.Model.Map.Grid;
-import WumpusEnvironment.Model.Map.Node;
+import WumpusEnvironment.Model.Agent.*;
+import WumpusEnvironment.Model.Map.*;
 
 import com.jogamp.opengl.util.awt.TextRenderer;
 import com.jogamp.opengl.util.texture.Texture;
@@ -80,6 +80,16 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
    // Texture image flips vertically. Shall use TextureCoords class to retrieve the
    // top, bottom, left and right coordinates.
    private float textureFloorTop, textureFloorBottom, textureFloorLeft, textureFloorRight;
+   
+   //belief textures
+   private Texture textureKnowGold, textureThinkGold, textureKnowWumpus, textureThinkWumpus,
+   					textureKnowMinion, textureThinkMinion, textureKnowPit, textureThinkPit,
+   					textureKnowSafe, textureThinkSafe, textureKnowWall;
+   private String textureBeliefFileName = "images/legacy/know_gold.gif";
+   private String textureBeliefFileType = ".gif";
+   // Texture image flips vertically. Shall use TextureCoords class to retrieve the
+   // top, bottom, left and right coordinates.
+   private float textureBeliefTop, textureBeliefBottom, textureBeliefLeft, textureBeliefRight;
    
    //pit texture
    private Texture texturePit;
@@ -220,6 +230,82 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
          textureFloorBottom = textureCoords.bottom();
          textureFloorLeft = textureCoords.left();
          textureFloorRight = textureCoords.right();
+      } catch (GLException e) {
+         e.printStackTrace();
+      } catch (IOException e) {
+         e.printStackTrace();
+      }
+      
+      // Load belief textures from image
+      try {
+         // Create a OpenGL Texture object from (URL, mipmap, file suffix)
+         // Use URL so that can read from JAR and disk file.
+         textureKnowGold = TextureIO.newTexture(
+               getClass().getClassLoader().getResource(textureBeliefFileName), // relative to project root 
+               false, textureBeliefFileType);
+         
+         textureBeliefFileName = "images/legacy/think_gold.gif";
+         textureThinkGold = TextureIO.newTexture(
+                 getClass().getClassLoader().getResource(textureBeliefFileName), // relative to project root 
+                 false, textureBeliefFileType);
+         
+         textureBeliefFileName = "images/legacy/know_wumpus.gif";
+         textureKnowWumpus = TextureIO.newTexture(
+                 getClass().getClassLoader().getResource(textureBeliefFileName), // relative to project root 
+                 false, textureBeliefFileType);
+         
+         textureBeliefFileName = "images/legacy/think_wumpus.gif";
+         textureThinkWumpus = TextureIO.newTexture(
+                 getClass().getClassLoader().getResource(textureBeliefFileName), // relative to project root 
+                 false, textureBeliefFileType);
+         
+         textureBeliefFileName = "images/legacy/know_minion.gif";
+         textureKnowMinion = TextureIO.newTexture(
+                 getClass().getClassLoader().getResource(textureBeliefFileName), // relative to project root 
+                 false, textureBeliefFileType);
+         
+         textureBeliefFileName = "images/legacy/think_minion.gif";
+         textureThinkMinion = TextureIO.newTexture(
+                 getClass().getClassLoader().getResource(textureBeliefFileName), // relative to project root 
+                 false, textureBeliefFileType);
+         
+         textureBeliefFileName = "images/legacy/know_pit.gif";
+         textureKnowPit = TextureIO.newTexture(
+                 getClass().getClassLoader().getResource(textureBeliefFileName), // relative to project root 
+                 false, textureBeliefFileType);
+         
+         textureBeliefFileName = "images/legacy/think_pit.gif";
+         textureThinkPit = TextureIO.newTexture(
+                 getClass().getClassLoader().getResource(textureBeliefFileName), // relative to project root 
+                 false, textureBeliefFileType);
+         
+         textureBeliefFileName = "images/legacy/know_safe.gif";
+         textureKnowSafe = TextureIO.newTexture(
+                 getClass().getClassLoader().getResource(textureBeliefFileName), // relative to project root 
+                 false, textureBeliefFileType);
+         
+         textureBeliefFileName = "images/legacy/think_safe.gif";
+         textureThinkSafe = TextureIO.newTexture(
+                 getClass().getClassLoader().getResource(textureBeliefFileName), // relative to project root 
+                 false, textureBeliefFileType);
+         
+         textureBeliefFileName = "images/legacy/know_wall.gif";
+         textureKnowWall = TextureIO.newTexture(
+                 getClass().getClassLoader().getResource(textureBeliefFileName), // relative to project root 
+                 false, textureBeliefFileType);
+
+         // Use linear filter for texture if image is larger than the original texture
+         gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+         // Use linear filter for texture if image is smaller than the original texture
+         gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+         // Texture image flips vertically. Shall use TextureCoords class to retrieve
+         // the top, bottom, left and right coordinates, instead of using 0.0f and 1.0f.
+         TextureCoords textureCoords = textureKnowGold.getImageTexCoords();
+         textureBeliefTop = textureCoords.top();
+         textureBeliefBottom = textureCoords.bottom();
+         textureBeliefLeft = textureCoords.right();
+         textureBeliefRight = textureCoords.left();
       } catch (GLException e) {
          e.printStackTrace();
       } catch (IOException e) {
@@ -482,6 +568,8 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 		if(!mapNode.isWall() && !mapNode.hasPit()){
 			drawFloor(drawable,mapNode);
 		}
+		//draw beliefs for all nodes
+		drawBelief(drawable,mapNode);
    }
    
    private void drawFloor(GLAutoDrawable drawable, Node mapNode) {
@@ -508,18 +596,72 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	   textureFloor.disable(gl);
 	   textureFloorEvaluated.disable(gl);
 	   gl.glPopMatrix();
-	   
-	   //gl.glLoadIdentity();
-	   gl.glPushMatrix();
-	   textRenderer.begin3DRendering();
+	}
+   
+   private void drawBelief(GLAutoDrawable drawable, Node mapNode) {
+	  //gl.glLoadIdentity();
+	   GL2 gl = drawable.getGL().getGL2();
+	   textureKnowGold.enable(gl);
+	   textureThinkGold.enable(gl);
+	   textureKnowWumpus.enable(gl);
+	   textureThinkWumpus.enable(gl);
+	   textureKnowPit.enable(gl);
+	   textureThinkPit.enable(gl);
+	   textureKnowMinion.enable(gl);
+	   textureThinkMinion.enable(gl);
+	   textureKnowSafe.enable(gl);
+	   textureThinkSafe.enable(gl);
+	   textureKnowWall.enable(gl);
+	   /*textRenderer.begin3DRendering();
 	    // optionally set the color
 	    textRenderer.setColor(1.0f, 0.2f, 0.2f, 0.8f);
 	    textRenderer.draw3D("Text to draw", drawable.getWidth()/2f, drawable.getHeight()/2f,-5f, 1f);
 	    // ... more draw commands, color changes, etc.
 	    textRenderer.flush();
-	    textRenderer.end3DRendering();
-	    gl.glPopMatrix();
-		
+	    textRenderer.end3DRendering();*/
+	   boolean loaded = true;
+	   //priority order in order of if/else list
+	   if(mapNode.getBelief(Agent.WALL_HERE) == Agent.YES) textureKnowWall.bind(gl);
+	   else if(mapNode.getBelief(Agent.GOLD_HERE) == Agent.YES) textureKnowGold.bind(gl);
+	   else if(mapNode.getBelief(Agent.GOLD_HERE) == Agent.MAYBE) textureThinkGold.bind(gl);
+	   else if(mapNode.getBelief(Agent.WUMPUS_HERE) == Agent.YES) textureKnowWumpus.bind(gl);
+	   else if(mapNode.getBelief(Agent.WUMPUS_HERE) == Agent.MAYBE) textureThinkWumpus.bind(gl);
+	   else if(mapNode.getBelief(Agent.PIT_HERE) == Agent.YES) textureKnowPit.bind(gl);
+	   else if(mapNode.getBelief(Agent.PIT_HERE) == Agent.MAYBE) textureThinkPit.bind(gl);
+	   else if(mapNode.getBelief(Agent.MINION_HERE) == Agent.YES) textureKnowMinion.bind(gl);
+	   else if(mapNode.getBelief(Agent.MINION_HERE) == Agent.MAYBE) textureThinkMinion.bind(gl);
+	   else if(mapNode.getBelief(Agent.SAFE_HERE) == Agent.YES) textureKnowSafe.bind(gl);
+	   else if(mapNode.getBelief(Agent.SAFE_HERE) == Agent.MAYBE) textureThinkSafe.bind(gl);
+	   else loaded = false;
+	   
+	   if(loaded){
+		   gl.glPushMatrix();
+		   gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), -0.75f); //translate to location on map
+		   gl.glScalef(0.6f, 0.6f, 0.6f);
+	       gl.glNormal3f(0f,0f,-1f);
+		   gl.glBegin(GL_QUADS); // of the color cube
+		      gl.glTexCoord2f(textureBeliefLeft, textureBeliefBottom);
+		      gl.glVertex3f(-0.5f, -0.5f, 0.5f); // bottom-left of the texture and quad
+		      gl.glTexCoord2f(textureBeliefRight, textureBeliefBottom);
+		      gl.glVertex3f(0.5f, -0.5f, 0.5f);  // bottom-right of the texture and quad
+		      gl.glTexCoord2f(textureBeliefRight, textureBeliefTop);
+		      gl.glVertex3f(0.5f, 0.5f, 0.5f);   // top-right of the texture and quad
+		      gl.glTexCoord2f(textureBeliefLeft, textureBeliefTop);
+		      gl.glVertex3f(-0.5f, 0.5f, 0.5f);  // top-left of the texture and quad
+		   gl.glEnd();
+		    gl.glPopMatrix();
+	   }
+	   textureKnowGold.disable(gl);
+	   textureThinkGold.disable(gl);
+	   textureKnowWumpus.disable(gl);
+	   textureThinkWumpus.disable(gl);
+	   textureKnowPit.disable(gl);
+	   textureThinkPit.disable(gl);
+	   textureKnowMinion.disable(gl);
+	   textureThinkMinion.disable(gl);
+	   textureKnowSafe.disable(gl);
+	   textureThinkSafe.disable(gl);
+	   textureKnowWall.disable(gl);
 	}
    
 	private void drawFairy(GLAutoDrawable drawable, Node mapNode) {
@@ -704,7 +846,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	      textureWall.bind(gl);  // same as gl.glBindTexture(texture.getTarget(), texture.getTextureObject());
 	      //gl.glLoadIdentity();                // reset the current model-view matrix
 	      gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.125f); //translate to location on map
-	      gl.glScalef(1f, 1f, 0.75f); //make the walls a little shorter
+	      //gl.glScalef(1f, 1f, 0.85f); //make the walls a little shorter
 	      gl.glBegin(GL_QUADS); // of the color cube
 	 	 
 	      // Front Face
