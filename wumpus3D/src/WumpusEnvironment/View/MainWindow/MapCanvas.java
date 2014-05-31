@@ -50,7 +50,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
    //set up camera
    int mapWidth, mapHeight;
    int distance; //how far away the camera is
-   float[] eyeVec;
+   float[] eyePos;
    //int[] midPoint; //where the camera will look
    private float rotateX = 0.0f, rotateY = 0.0f;
    boolean zoomChanged = false;
@@ -73,7 +73,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
    // top, bottom, left and right coordinates.
    private float textureWallTop, textureWallBottom, textureWallLeft, textureWallRight;
    
-   //floor textures
+   //floor texture
    private Texture textureFloor, textureFloorEvaluated;
    private String textureFloorFileName = "images/legacy/floor.gif";
    private String textureFloorFileType = ".gif";
@@ -88,6 +88,14 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
    // Texture image flips vertically. Shall use TextureCoords class to retrieve the
    // top, bottom, left and right coordinates.
    private float texturePitTop, texturePitBottom, texturePitLeft, texturePitRight;
+   
+   //Gold texture
+   private Texture textureGold;
+   private String textureGoldFileName = "images/gold.png";
+   private String textureGoldFileType = ".png";
+   // Texture image flips vertically. Shall use TextureCoords class to retrieve the
+   // top, bottom, left and right coordinates.
+   private float textureGoldTop, textureGoldBottom, textureGoldLeft, textureGoldRight;
    
    //dead enemy texture
    private Texture textureDeadWumpus;
@@ -129,15 +137,15 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
       midPoint[1] = 0f;
       midPoint[2] = -0.5f;
       
-      eyeVec = new float[3];
-      eyeVec[0] = midPoint[0];
-      eyeVec[1] = midPoint[1]+(distance/3);
-      eyeVec[2] = distance/1.05f;
+      eyePos = new float[3];
+      eyePos[0] = midPoint[0];
+      eyePos[1] = midPoint[1]+(distance/3);
+      eyePos[2] = distance/1.05f;
       circleAngle = 0;
       upDownAngle = new float[2];
       upDownAngle[0] = 0f;
       upDownAngle[1] = 0f;
-      radius = getVectorLength(eyeVec);
+      radius = vectorLength(eyePos);
    }
  
    // ------ Implement methods declared in GLEventListener ------
@@ -239,6 +247,33 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
          texturePitBottom = textureCoords.bottom();
          texturePitLeft = textureCoords.left();
          texturePitRight = textureCoords.right();
+      } catch (GLException e) {
+         e.printStackTrace();
+      } catch (IOException e) {
+         e.printStackTrace();
+      }
+      
+      // Load gold texture from image
+      try {
+         // Create a OpenGL Texture object from (URL, mipmap, file suffix)
+         // Use URL so that can read from JAR and disk file.
+         textureGold = TextureIO.newTexture(
+               getClass().getClassLoader().getResource(textureGoldFileName), // relative to project root 
+               false, textureGoldFileType);
+
+         // Use linear filter for texture if image is larger than the original texture
+         gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+         // Use linear filter for texture if image is smaller than the original texture
+         gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+         gl.glGenerateMipmap(GL_TEXTURE_2D);
+
+         // Texture image flips vertically. Shall use TextureCoords class to retrieve
+         // the top, bottom, left and right coordinates, instead of using 0.0f and 1.0f.
+         TextureCoords textureCoords = textureGold.getImageTexCoords();
+         textureGoldTop = textureCoords.top();
+         textureGoldBottom = textureCoords.bottom();
+         textureGoldLeft = textureCoords.left();
+         textureGoldRight = textureCoords.right();
       } catch (GLException e) {
          e.printStackTrace();
       } catch (IOException e) {
@@ -349,7 +384,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
       //set up camera
       //set camera
       glu.gluLookAt(//eye
-    		  				eyeVec[0], eyeVec[1], eyeVec[2],
+    		  				eyePos[0], eyePos[1], eyePos[2],
     		  		//center
 	    		  			midPoint[0], midPoint[1], midPoint[2],
     		  		//up
@@ -361,7 +396,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
       
       // Prepare light parameters.
       float SHINE_ALL_DIRECTIONS = 1;
-      float[] lightPos = {midPoint[0]*1.5f, midPoint[0]*1.5f, distance*2f, SHINE_ALL_DIRECTIONS};
+      float[] lightPos = {eyePos[0]*2, eyePos[1]*2, -radius, SHINE_ALL_DIRECTIONS};
       float[] lightColorAmbient = {0.3f, 0.3f, 0.3f, 1f};
       float[] lightColorDiffuse = {0.2f, 0.2f, 0.2f, 1f};
       float[] lightColorSpecular = {0.4f, 0.4f, 0.4f, 1f};
@@ -408,10 +443,8 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	   GL2 gl = drawable.getGL().getGL2();
 	   //apply transformations to world
 	   gl.glLoadIdentity();
-	   //gl.glRotatef(startAngle, 0f, 1f, 0f);
-	   gl.glRotatef(circleAngle, 0f, 0f, 1f);
+	   gl.glRotatef(-circleAngle, 0f, 0f, 1f);
 	   gl.glTranslatef((float)map.getWidth()/2f, (float)map.getHeight()/2f, 0f);
-	   //gl.glRotatef(startAngle, 0f, 0f, 1f);
 	   for(int i = 0; i < map.getHeight(); i++){
 		   for(int j = 0; j < map.getWidth(); j++){
 			   Node mapNode = map.getNode(j,i);
@@ -514,7 +547,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 		gl.glPushMatrix();
 	    //gl.glLoadIdentity();                // reset the current model-view matrix
 	    gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); //translate to location on map
-	    gl.glRotatef(25,1f,0f,0f); //rotate a little upwards
+	    //gl.glRotatef(25,1f,0f,0f); //rotate a little upwards
 	    
 	    //rotate to face the Agent's current heading
 	    int rot = 30; //the base turn amount to face initial camera, or SOUTH
@@ -554,7 +587,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 		gl.glPushMatrix();
 	    //gl.glLoadIdentity();                // reset the current model-view matrix
 	    gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); //translate to location on map
-	    gl.glRotatef(25,1f,0f,0f); //rotate a little upwards
+	    //gl.glRotatef(25,1f,0f,0f); //rotate a little upwards
 		GLUquadric quad = glu.gluNewQuadric();
 		glu.gluQuadricTexture(quad,true);
 		glu.gluQuadricDrawStyle(quad, GLU.GLU_FILL);
@@ -613,7 +646,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 		
 	}
 	
-	private void drawWumpus(GLAutoDrawable drawable, Node mapNode) {
+	private void drawWumpus (GLAutoDrawable drawable, Node mapNode) {
 		// Get the OpenGL graphics context
 		GL2 gl = drawable.getGL().getGL2();
 		textureWumpus.enable(gl);
@@ -750,8 +783,8 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	private void drawGoal(GLAutoDrawable drawable, Node mapNode) {
 		// Get the OpenGL graphics context
 	      GL2 gl = drawable.getGL().getGL2();
-	      textureWall.enable(gl);
-	      textureWall.bind(gl);
+	      textureGold.enable(gl);
+	      textureGold.bind(gl);
 	      gl.glPushMatrix();
 		  //gl.glLoadIdentity();                 // reset the model-view matrix
 	      gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); // translate
@@ -762,28 +795,47 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	      gl.glBegin(GL_TRIANGLES); // of the pyramid
 	 
 	      // Front-face triangle
-	      gl.glNormal3f(0f,0f,-1f);
+	      float[] norm = normalize(new float[]{0f,2f,4f});
+	      gl.glNormal3f(norm[0],norm[1],norm[2]);
+	      gl.glTexCoord2f((textureGoldLeft+textureGoldRight)/2, (textureGoldTop+textureGoldBottom)/2);
 	      gl.glVertex3f(0.0f, 1.0f, 0.0f);
+	      gl.glTexCoord2f(textureGoldLeft, textureGoldTop);
 	      gl.glVertex3f(-1.0f, -1.0f, 1.0f);
+	      gl.glTexCoord2f(textureGoldRight, textureGoldTop);
 	      gl.glVertex3f(1.0f, -1.0f, 1.0f);
 	 
 	      // Right-face triangle
+	      norm = normalize(new float[]{4f,2f,0f});
+	      gl.glNormal3f(norm[0],norm[1],norm[2]);
+	      gl.glTexCoord2f((textureGoldLeft+textureGoldRight)/2, (textureGoldTop+textureGoldBottom)/2);
 	      gl.glVertex3f(0.0f, 1.0f, 0.0f);
+	      gl.glTexCoord2f(textureGoldRight, textureGoldTop);
 	      gl.glVertex3f(1.0f, -1.0f, 1.0f);
+	      gl.glTexCoord2f(textureGoldRight, textureGoldBottom);
 	      gl.glVertex3f(1.0f, -1.0f, -1.0f);
 	 
 	      // Back-face triangle
+	      norm = normalize(new float[]{0f,2f,-4f});
+	      gl.glNormal3f(norm[0],norm[1],norm[2]);
+	      gl.glTexCoord2f((textureGoldLeft+textureGoldRight)/2, (textureGoldTop+textureGoldBottom)/2);
 	      gl.glVertex3f(0.0f, 1.0f, 0.0f);
+	      gl.glTexCoord2f(textureGoldRight, textureGoldBottom);
 	      gl.glVertex3f(1.0f, -1.0f, -1.0f);
+	      gl.glTexCoord2f(textureGoldLeft, textureGoldBottom);
 	      gl.glVertex3f(-1.0f, -1.0f, -1.0f);
 	 
 	      // Left-face triangle
+	      norm = normalize(new float[]{-4f,2f,0f});
+	      gl.glNormal3f(norm[0],norm[1],norm[2]);
+	      gl.glTexCoord2f((textureGoldLeft+textureGoldRight)/2, (textureGoldTop+textureGoldBottom)/2);
 	      gl.glVertex3f(0.0f, 1.0f, 0.0f);
+	      gl.glTexCoord2f(textureGoldLeft, textureGoldBottom);
 	      gl.glVertex3f(-1.0f, -1.0f, -1.0f);
+	      gl.glTexCoord2f(textureGoldLeft, textureGoldTop);
 	      gl.glVertex3f(-1.0f, -1.0f, 1.0f);
 	 
 	      gl.glEnd(); // of the pyramid
-	      textureWall.disable(gl);
+	      textureGold.disable(gl);
 	      gl.glPopMatrix();
 	}
    
@@ -810,18 +862,18 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 		float moveAmount = 0.35f;
 		if(e.getY() > startY){ //mouse moved up
 			startY = e.getY();
-			if(eyeVec[1] + moveAmount < midPoint[1]){ //bounds on y so it can't go over the top of the map
+			if(eyePos[1] + moveAmount < midPoint[1]){ //bounds on y so it can't go over the top of the map
 				rotChanged = true;
-				eyeVec[1] += moveAmount;
-				eyeVec[2] -= moveAmount;
+				eyePos[1] += moveAmount;
+				eyePos[2] -= moveAmount;
 			}
 		}
 		else if(e.getY() < startY){ //mouse moved down
 			startY = e.getY();
-			if(eyeVec[2] + moveAmount < midPoint[2]){ //bounds on y so it can't go under the map
+			if(eyePos[2] + moveAmount < midPoint[2]){ //bounds on y so it can't go under the map
 				rotChanged = true;
-				eyeVec[1] -= moveAmount;
-				eyeVec[2] += moveAmount;
+				eyePos[1] -= moveAmount;
+				eyePos[2] += moveAmount;
 			}
 		}
 	}
@@ -859,33 +911,35 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
 		float zoom = 0.35f;
-		float[] unitEye = getUnitVector(eyeVec);
+		float[] unitEye = normalize(eyePos);
 		if(e.getWheelRotation() < 0){ //scrolled up, zoom in
 			zoomChanged  = true;
-			eyeVec[0] -= zoom*unitEye[0];
-			eyeVec[1] -= zoom*unitEye[1];
-			if(eyeVec[2] + zoom*unitEye[2] < midPoint[2]-2f){ //enable zooming even if z is 0
-				eyeVec[2] -= zoom*unitEye[2];
+			if(vectorLength(eyePos) > 2.5f){
+				eyePos[0] -= zoom*unitEye[0];
+				eyePos[1] -= zoom*unitEye[1];
+				if(eyePos[2] + zoom*unitEye[2] < midPoint[2]-2f){ //enable zooming even if z is 0
+					eyePos[2] -= zoom*unitEye[2];
+				}
 			}
 		}
 		else if(e.getWheelRotation() > 0){ //scrolled down, zoom out
-			if(Math.abs(eyeVec[2] + zoom*unitEye[2]) < Math.abs(radius*2)){
+			if(Math.abs(eyePos[2] + zoom*unitEye[2]) < Math.abs(radius*2)){
 				zoomChanged = true;
-				eyeVec[0] += zoom*unitEye[0];
-				eyeVec[1] += zoom*unitEye[1];
-				eyeVec[2] += zoom*unitEye[2];
+				eyePos[0] += zoom*unitEye[0];
+				eyePos[1] += zoom*unitEye[1];
+				eyePos[2] += zoom*unitEye[2];
 			}
 		}
 	}
 	
-	private float getVectorLength(float[] vec){
+	private float vectorLength(float[] vec){
 		return (float)Math.sqrt(Math.pow(vec[0], 2) + Math.pow(vec[1], 2) + Math.pow(vec[2], 2));
 	}
 	
-	private float[] getUnitVector(float[] vec){
+	private float[] normalize(float[] vec){
 		float[] ret = new float[3];
 		//get length of vector
-		float length = getVectorLength(vec);
+		float length = vectorLength(vec);
 		
 		//don't want to divide by 0
 		if(length == 0){ 
