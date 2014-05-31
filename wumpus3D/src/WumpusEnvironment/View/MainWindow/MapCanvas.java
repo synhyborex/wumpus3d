@@ -102,8 +102,13 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
    
    //Wumpus texture
    private Texture textureWumpus;
-   private String textureWumpusFileName = "images/Wumpus.png";
+   private String textureWumpusFileName = "images/wumpus.png";
    private String textureWumpusFileType = ".png";
+   
+   //Wumpus texture
+   private Texture textureMinion;
+   private String textureMinionFileName = "images/minion.png";
+   private String textureMinionFileType = ".png";
  
    /** Constructor to setup the GUI for this Component */
    public MapCanvas(int view) {
@@ -290,6 +295,25 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
          textureWumpus = TextureIO.newTexture(
                getClass().getClassLoader().getResource(textureWumpusFileName), // relative to project root 
                false, textureWumpusFileType);
+
+         // Use linear filter for texture if image is larger than the original texture
+         gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+         // Use linear filter for texture if image is smaller than the original texture
+         gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+         gl.glGenerateMipmap(GL_TEXTURE_2D);
+      } catch (GLException e) {
+         e.printStackTrace();
+      } catch (IOException e) {
+         e.printStackTrace();
+      }
+      
+      // Load minion texture from image
+      try {
+         // Create a OpenGL Texture object from (URL, mipmap, file suffix)
+         // Use URL so that can read from JAR and disk file.
+         textureMinion = TextureIO.newTexture(
+               getClass().getClassLoader().getResource(textureMinionFileName), // relative to project root 
+               false, textureMinionFileType);
 
          // Use linear filter for texture if image is larger than the original texture
          gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -525,10 +549,9 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	private void drawMinion(GLAutoDrawable drawable, Node mapNode) {
 		// Get the OpenGL graphics context
 		GL2 gl = drawable.getGL().getGL2();
-		textureDeadWumpus.enable(gl);
-		textureDeadWumpus.bind(gl);
+		textureMinion.enable(gl);
+		textureMinion.bind(gl);
 		gl.glPushMatrix();
-		gl.glColor3f(1.0f, 0.549f, 0.0f); //dark orange
 	    //gl.glLoadIdentity();                // reset the current model-view matrix
 	    gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); //translate to location on map
 	    gl.glRotatef(25,1f,0f,0f); //rotate a little upwards
@@ -539,7 +562,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
         glu.gluQuadricOrientation(quad, GLU.GLU_OUTSIDE);
 		glu.gluSphere(quad, 0.43, 25, 25);
 		glu.gluDeleteQuadric(quad);
-		textureDeadWumpus.disable(gl);
+		textureMinion.disable(gl);
 		gl.glPopMatrix();		
 	}
 	
