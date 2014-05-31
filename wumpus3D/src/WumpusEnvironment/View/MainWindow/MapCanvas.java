@@ -57,8 +57,8 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
    boolean rotChanged = false;
    private int startX, endX, startY, endY, endZ;
    float prevZ;
-   float radius, circleAngle, upDownAngle;
-   float[] midPoint;
+   float radius, circleAngle;
+   float[] midPoint, upDownAngle;
    private int testRot = 0;
    
    //text rendering
@@ -117,18 +117,21 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
       //camera stuff
       int mapWidth = map.getWidth(), mapHeight = map.getHeight();
       int distance = -(mapWidth+mapHeight/2);
-      midPoint = new float[2];
+      midPoint = new float[3];
       //midPoint[0] = -mapWidth/2;
       //midPoint[1] = -mapHeight/2;
       midPoint[0] = 0f;
       midPoint[1] = 0f;
+      midPoint[2] = -0.5f;
       
       eyeVec = new float[3];
       eyeVec[0] = midPoint[0];
       eyeVec[1] = midPoint[1]+(distance/3);
       eyeVec[2] = distance/1.05f;
       circleAngle = 0;
-      upDownAngle = 0;
+      upDownAngle = new float[2];
+      upDownAngle[0] = 0f;
+      upDownAngle[1] = 0f;
       radius = getVectorLength(eyeVec);
    }
  
@@ -324,7 +327,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
       glu.gluLookAt(//eye
     		  				eyeVec[0], eyeVec[1], eyeVec[2],
     		  		//center
-	    		  			midPoint[0], midPoint[1], 0.5f,
+	    		  			midPoint[0], midPoint[1], midPoint[2],
     		  		//up
 	    		  			0, 1, 0);
  
@@ -776,33 +779,28 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 		if(e.getX() > startX){ //mouse moved right
 			startX = e.getX();
 			circleAngle += 180f/360*2*Math.PI;
-			//eyeVec[0] = (float) (midPoint[0] + Math.cos(startAngle) * radius);
-			//eyeVec[1] = (float) (midPoint[1] + Math.sin(startAngle) * radius);
 		}
 		else if(e.getX() < startX){ //mouse moved left
 			startX = e.getX();
 			circleAngle -= 180f/360*2*Math.PI;
-			//eyeVec[0] = (float) (midPoint[0] + Math.cos(startAngle) * radius);
-			//eyeVec[1] = (float) (midPoint[1] + Math.sin(startAngle) * radius);
 		}
-		if(e.getY() > startY){
+		float moveAmount = 0.35f;
+		if(e.getY() > startY){ //mouse moved up
 			startY = e.getY();
-			rotChanged = true;
-			upDownAngle += 180f/360*2*Math.PI;
-			//eyeVec[2] = (float) (midPoint[0] + Math.cos(upDownAngle) * radius);
-			eyeVec[1] = (float) (midPoint[1] + Math.sin(upDownAngle) * radius);
+			if(eyeVec[1] + moveAmount < midPoint[1]){ //bounds on y so it can't go over the top of the map
+				rotChanged = true;
+				eyeVec[1] += moveAmount;
+				eyeVec[2] -= moveAmount;
+			}
 		}
-		else if(e.getY() < startY){
+		else if(e.getY() < startY){ //mouse moved down
 			startY = e.getY();
-			rotChanged = true;
-			upDownAngle -= 180f/360*2*Math.PI;
-			//eyeVec[2] = (float) (midPoint[0] + Math.cos(upDownAngle) * radius);
-			eyeVec[1] = (float) (midPoint[1] + Math.sin(upDownAngle) * radius);
-			//eyeVec[2] -= 0.5f;
+			if(eyeVec[2] + moveAmount < midPoint[2]){ //bounds on y so it can't go under the map
+				rotChanged = true;
+				eyeVec[1] -= moveAmount;
+				eyeVec[2] += moveAmount;
+			}
 		}
-		//rotateX = e.getX();
-		//rotateY = e.getY();
-		//zoomChanged += e.getX();*/
 	}
 	
 	@Override
@@ -819,16 +817,10 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	public void mousePressed(MouseEvent e) {
 		startX = e.getX();
 		startY = e.getY();
-		//startZ = e.getX();
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		endX = e.getX();
-		endY = e.getY();
-		//endZ = e.getX();
-		//rotateX = endX-startX;
-		//rotateY = endY-startY;
 	}
 
 	@Override
@@ -843,16 +835,18 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 
 	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
-		float zoom = 0.5f;
+		float zoom = 0.35f;
 		float[] unitEye = getUnitVector(eyeVec);
-		if(e.getWheelRotation() < 0){ //scrolled down, zoom out
+		if(e.getWheelRotation() < 0){ //scrolled up, zoom in
 			zoomChanged  = true;
 			eyeVec[0] -= zoom*unitEye[0];
 			eyeVec[1] -= zoom*unitEye[1];
-			eyeVec[2] -= zoom*unitEye[2];
+			if(eyeVec[2] + zoom*unitEye[2] < midPoint[2]-2f){ //enable zooming even if z is 0
+				eyeVec[2] -= zoom*unitEye[2];
+			}
 		}
-		else if(e.getWheelRotation() > 0){ //scrolled up, zoom in
-			if(eyeVec[2] + zoom*unitEye[2] < 0f){
+		else if(e.getWheelRotation() > 0){ //scrolled down, zoom out
+			if(Math.abs(eyeVec[2] + zoom*unitEye[2]) < Math.abs(radius*2)){
 				zoomChanged = true;
 				eyeVec[0] += zoom*unitEye[0];
 				eyeVec[1] += zoom*unitEye[1];
