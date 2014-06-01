@@ -21,7 +21,7 @@ import java.util.*;
 import java.lang.*;
 
 public class ApplicationWindow  extends JFrame implements ActionListener{// implements GLEventListener{
-	
+	private static final long serialVersionUID = 1L;
 	protected final static int MIN_DELAY = 0;
 	protected final static int MAX_DELAY = 1000;
 	protected final static int DEFAULT_DELAY = 100;
@@ -32,53 +32,9 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 	static int g_width = 800;
 	static int g_height = 600;
 	
-	//handles
-	int h_aPosition;
-	int h_aColor;
-	
-	private IntBuffer buffers = IntBuffer.allocate(2);
-	IntBuffer vertexArray = IntBuffer.allocate(1);
-	float CubePos[] = {
-		    -0.5f, 0.5f, -0.5f, /*top face 4 verts :0 */
-		    -0.5f, 0.5f, 0.5f,
-		    0.5f, 0.5f, 0.5f,
-		    0.5f, 0.5f, -0.5f,
-		    -0.5f, -0.5f, -0.5f, /*bottom face 4 verts :4*/
-		    -0.5f, -0.5f, 0.5f,
-		    0.5f, -0.5f, 0.5f,
-		    0.5f, -0.5f, -0.5f,
-		    -0.5f, -0.5f, 0.5f, /*left face 4 verts :8*/
-		    -0.5f, -0.5f, -0.5f,
-		    -0.5f, 0.5f, -0.5f,
-		    -0.5f, 0.5f, 0.5f,
-		    0.5f, -0.5f, 0.5f, /*right face 4 verts :12*/
-		    0.5f, -0.5f, -0.5f,
-		    0.5f, 0.5f, -0.5f,
-		    0.5f, 0.5f, 0.5f
-		  };
-	
-	int idx[] = {0,1,2, 2,3,0, 4,5,6, 6,7,4, 8,9,10, 10,11,8,  12,13,14, 14,15,12};
-
-	private float[] colorData = {
-	        1, 0, 0,
-	        1, 1, 0,
-	        0, 1, 0,
-	        0, 1, 0,
-	        0, 0, 1,
-	        1, 0, 0
-	};
-
-	FloatBuffer CubeBuffObj = FloatBuffer.wrap(CubePos);
-	IntBuffer CubeIdxBuffObj = IntBuffer.wrap(idx);
-	int idxlen;
-	FloatBuffer colorFB = FloatBuffer.wrap(colorData);
-	//GLuint h;
-	//GLenum j;
-	
 	protected static Grid grid;
 	protected static Agent agent;
 	protected AgentHandler agentHandler;
-	//protected final GLresources gr;
 	
 	//the main panel
 	JPanel mainWindow;
@@ -110,6 +66,7 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 	JPanel logPane; //the pane that will hold both the log and the save button
 	//the map pane
 	JPanel mapPane; //the map pane
+	JLabel loadDisplay;
 	GLJPanel mapView;
 	FPSAnimator mapAnimator;
 	
@@ -304,6 +261,15 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 		
 		//create panel for map display
 		mapPane = new JPanel();
+		mapPane.setLayout(new BoxLayout(mapPane,BoxLayout.X_AXIS));		
+		loadDisplay = new JLabel("Select a map to display");
+		loadDisplay.setHorizontalAlignment(SwingConstants.CENTER);
+		loadDisplay.setFont(new Font(loadDisplay.getFont().toString(),Font.ITALIC,loadDisplay.getFont().getSize()));
+		//mapPane.add(Box.createRigidArea(new Dimension(0,50)));
+		//mapPane.add(Box.createRigidArea(new Dimension(50,0)));
+		mapPane.add(Box.createHorizontalGlue());
+		mapPane.add(loadDisplay);
+		mapPane.add(Box.createHorizontalGlue());
 		
 		//create the split pane that will display the map and the log
 		mainView = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
@@ -316,6 +282,14 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 	}
 	
 	protected void showMap(boolean fairy){
+		//display loading text
+		mapPane.removeAll();
+		mapPane.add(loadDisplay);
+		mapPane.revalidate();
+		loadDisplay.setText("Loading your map...");
+		loadDisplay.paintImmediately(loadDisplay.getVisibleRect());
+		
+		//make sure all threads are closed before we fork off new ones!
 		if(mapAnimator != null){
 			if(mapAnimator.isStarted()) mapAnimator.stop();
 		}
@@ -326,6 +300,8 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 			} catch (InterruptedException e1) {
 			}
 		}
+		
+		//reset all components
 		if(agentHandler != null) agentHandler.setAutoStep(false);
 		agent.setStartLocation(grid.getAgentLocation());
 		agent.privateReset();
@@ -339,22 +315,23 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 		Logger.generateLogEntry(agent,grid);
 		
 		// Create the OpenGL rendering canvas
-        mapView = new MapCanvas(MapCanvas.MAP_VIEW);
-        //GLJPanel agentView = new MapCanvas(MapCanvas.AGENT_VIEW);
-        //canvas.setMinimumSize(new Dimension(200, 200));
+        mapView = new MapCanvas();
  
         // Create a animator that drives canvas' display() at the specified FPS.
         mapAnimator = new FPSAnimator(mapView, 80, true);
-        //final FPSAnimator agentMapAnimator = new FPSAnimator(agentView, 60, true);
  
         // Create the top-level container frame
-        mapPane.add(mapView,"North");
-        mapAnimator.start(); // start the animation loop
-        //agentMapAnimator.start();
+        mapPane.removeAll();
+        mapPane.add(mapView);
+        
+        //enable movement buttons
+  		enableButtons(new JButton[]{stepButton,autoStepButton,resetButton});
+  		stopButton.setEnabled(false);
+  		
+  		// start the animation loop
+        mapAnimator.start(); 
 		mainView.setLeftComponent(mapView);
-		//enable movement buttons
-		enableButtons(new JButton[]{stepButton,autoStepButton,resetButton});
-		stopButton.setEnabled(false);
+		
 		//now that everything is set up, start the agent handling thread
 		agentHandler.start();
 	}

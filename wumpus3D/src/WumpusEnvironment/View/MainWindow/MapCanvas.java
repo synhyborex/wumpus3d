@@ -7,7 +7,6 @@ import static javax.media.opengl.fixedfunc.GLLightingFunc.*;
 import static javax.media.opengl.fixedfunc.GLMatrixFunc.GL_MODELVIEW;
 import static javax.media.opengl.fixedfunc.GLMatrixFunc.GL_PROJECTION;
 
-import java.awt.Font;
 import java.awt.event.*;
 import java.io.IOException;
 
@@ -22,7 +21,6 @@ import javax.media.opengl.glu.GLUquadric;
 import WumpusEnvironment.Model.Agent.*;
 import WumpusEnvironment.Model.Map.*;
 
-import com.jogamp.opengl.util.awt.TextRenderer;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureCoords;
 import com.jogamp.opengl.util.texture.TextureIO;
@@ -36,14 +34,8 @@ import com.jogamp.opengl.util.texture.TextureIO;
  */
 @SuppressWarnings("serial")
 public class MapCanvas extends GLJPanel implements GLEventListener, MouseListener, MouseMotionListener, MouseWheelListener {
-	public static final int MAP_VIEW = 0;
-	public static final int AGENT_VIEW = 0;
-	private int view;
    private GLU glu;  // for the GL Utility
    private float anglePyramid = 0;    // rotational angle in degree for pyramid
-   private float angleCube = 0;       // rotational angle in degree for cube
-   private float speedPyramid = 2.0f; // rotational speed for pyramid
-   private float speedCube = -1.5f;   // rotational speed for cube
    private Grid map;
    
    //camera variables
@@ -51,18 +43,11 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
    int mapWidth, mapHeight;
    int distance; //how far away the camera is
    float[] eyePos;
-   //int[] midPoint; //where the camera will look
-   private float rotateX = 0.0f, rotateY = 0.0f;
    boolean zoomChanged = false;
    boolean rotChanged = false;
-   private int startX, endX, startY, endY, endZ;
-   float prevZ;
-   float radius, circleAngle;
-   float[] midPoint, upDownAngle;
-   private int testRot = 0;
-   
-   //text rendering
-   TextRenderer textRenderer;
+   private int startX, startY;
+   private float radius, circleAngle;
+   private float[] midPoint, upDownAngle;
    
    // Textures
    //wall texture
@@ -134,13 +119,12 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
    private String textureMinionFileType = ".png";
  
    /** Constructor to setup the GUI for this Component */
-   public MapCanvas(int view) {
+   public MapCanvas() {
       this.addGLEventListener(this);
       this.addMouseListener(this);
       this.addMouseMotionListener(this);
       this.addMouseWheelListener(this);
       map = Grid.getInstance();
-      this.view = view;
       
       //camera stuff
       int mapWidth = map.getWidth(), mapHeight = map.getHeight();
@@ -179,8 +163,6 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
       gl.glDepthFunc(GL_LEQUAL);  // the type of depth test to do
       gl.glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // best perspective correction
       gl.glShadeModel(GL_SMOOTH); // blends colors nicely, and smoothes out lighting
-      
-      textRenderer = new TextRenderer(new Font("SansSerif", Font.BOLD, 36));
  
       // ----- Your OpenGL initialization code here -----
       // Load wall texture from image
@@ -539,7 +521,6 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	      
 	      drawMap(drawable);
 	      update();
-	      testRot += 5;
 	      if(zoomChanged || rotChanged){
 	    	  if(zoomChanged)
 	    		  zoomChanged = false;
@@ -697,6 +678,7 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 		gl.glColor3f(0.0f, 0.4f, 0.6f);
 	    //gl.glLoadIdentity(); // reset the current model-view matrix
 	    gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); //translate to location on map
+	    gl.glRotatef(25,1f,0f,0f); //rotate a little upwards
 		GLUquadric quad = glu.gluNewQuadric();
 		glu.gluQuadricTexture(quad,true);
 		glu.gluQuadricDrawStyle(quad, GLU.GLU_FILL);
@@ -1009,6 +991,8 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	}
    
    private void update() {
+	   //goal updating
+	   float speedPyramid = 2.0f;
 	   anglePyramid += speedPyramid;
    }
  

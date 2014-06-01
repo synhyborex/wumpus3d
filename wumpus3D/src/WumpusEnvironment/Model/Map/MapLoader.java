@@ -1,8 +1,6 @@
 package WumpusEnvironment.Model.Map;
 
 import java.io.*;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.Scanner;
 
 import javax.swing.*;
@@ -92,5 +90,4 @@ public class MapLoader {
 		}
 		return grid;
 	}
-
 }
