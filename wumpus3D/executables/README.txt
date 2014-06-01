@@ -22,6 +22,23 @@ the gold.
 reason, sometimes it may look like the Agent is skipping steps in auto-step mode. This can
 be remedied by sliding the bar higher so the frame has a chance to refresh itself.
 
+AGENTS:
+Here's a listing of what Agents are designed for what maps, so that you don't need to send me
+bug reports about Agents not working on every map.
+- TestA2Agent 
+	- BasicMap, ChallengeMap, MiniMap, WumpusMap
+- TestBFSAgent, TestDFSAgent, TestUniformAgent 
+	- astar-map,bfs-map
+- TestModelBasedAgent 
+	- modelbased-map
+- TestReflexAgent 
+	- reflex-map
+- TestTableAgent 
+	- table-map, testMap
+Using Agents on maps they're not designed for will result in undefined behavior. The system
+is designed so that all Agents can spawn properly on all maps, but not necessarily run
+the way that they're intended to, except on the maps it was designed for.
+
  
 
 MAPS:
