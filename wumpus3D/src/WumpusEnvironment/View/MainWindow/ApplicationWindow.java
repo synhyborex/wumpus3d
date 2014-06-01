@@ -98,19 +98,6 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 		setVisible(true);
 	}
 	
-	public static void main(String[] args){
-		// Create the frame that will display the environment
-		/*JFrame frame = new ApplicationWindow();		
-		frame.pack();
-		frame.setVisible(true);*/
-		SwingUtilities.invokeLater(new Runnable() {
-	         @Override
-	         public void run() {
-	            new ApplicationWindow();  // run the constructor
-	         }
-	      });
-	}
-	
 	public void actionPerformed(ActionEvent e){
 		Object source = e.getSource();
 		
