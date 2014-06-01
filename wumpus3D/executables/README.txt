@@ -5,7 +5,7 @@ Please refer to the proper documentation for more information about this applica
 
 However, since there is no good documentation, here are a few things to get you going:
 ENVIRONMENT:
-- To start the environment up, just run the file called "run"
+- To start the environment up, just run the file called "runEnvironment"
 - Once the environment loads up, go to the File menu and select an Agent. Since there is
 no documentation yet, it would be difficult to write your own Agent, so I've provided a number
 of example Agents
