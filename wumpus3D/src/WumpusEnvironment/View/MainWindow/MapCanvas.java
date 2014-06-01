@@ -118,6 +118,11 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
    private String textureAgentFileName = "images/agent.png";
    private String textureAgentFileType = ".png";
    
+ //agent texture
+   private Texture textureFairy;
+   private String textureFairyFileName = "images/fairy.png";
+   private String textureFairyFileType = ".png";
+   
    //Wumpus texture
    private Texture textureWumpus;
    private String textureWumpusFileName = "images/wumpus.png";
@@ -409,6 +414,25 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
          e.printStackTrace();
       }
       
+      // Load fairy texture from image
+      try {
+         // Create a OpenGL Texture object from (URL, mipmap, file suffix)
+         // Use URL so that can read from JAR and disk file.
+         textureFairy = TextureIO.newTexture(
+               getClass().getClassLoader().getResource(textureFairyFileName), // relative to project root 
+               false, textureFairyFileType);
+
+         // Use linear filter for texture if image is larger than the original texture
+         gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+         // Use linear filter for texture if image is smaller than the original texture
+         gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+         gl.glGenerateMipmap(GL_TEXTURE_2D);
+      } catch (GLException e) {
+         e.printStackTrace();
+      } catch (IOException e) {
+         e.printStackTrace();
+      }
+      
       // Load Wumpus texture from image
       try {
          // Create a OpenGL Texture object from (URL, mipmap, file suffix)
@@ -667,18 +691,21 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 	private void drawFairy(GLAutoDrawable drawable, Node mapNode) {
 		// Get the OpenGL graphics context
 		GL2 gl = drawable.getGL().getGL2();
+		textureFairy.enable(gl);
+		textureFairy.bind(gl);
 		gl.glPushMatrix();
 		gl.glColor3f(0.0f, 0.4f, 0.6f);
 	    //gl.glLoadIdentity(); // reset the current model-view matrix
 	    gl.glTranslatef(-mapNode.getX(), -mapNode.getY(), 0.0f); //translate to location on map
 		GLUquadric quad = glu.gluNewQuadric();
+		glu.gluQuadricTexture(quad,true);
 		glu.gluQuadricDrawStyle(quad, GLU.GLU_FILL);
         glu.gluQuadricNormals(quad, GLU.GLU_FLAT);
         glu.gluQuadricOrientation(quad, GLU.GLU_OUTSIDE);
 		glu.gluSphere(quad, 0.43, 25, 25);
-		glu.gluDeleteQuadric(quad);	
+		glu.gluDeleteQuadric(quad);
 		gl.glPopMatrix();
-		
+		textureFairy.disable(gl);
 	}
 
 	private void drawAgent(GLAutoDrawable drawable, Node mapNode) {
