@@ -45,7 +45,7 @@ public class MapLoader {
 				if(flag.equals("fairy"))
 					fairy = true;
 				if(flag.equals("learning"))
-					learningCount = flags.nextInt();
+					learningCount = flags.nextInt()-1;
 			}
 			flags.close();
 			

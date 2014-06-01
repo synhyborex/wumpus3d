@@ -43,6 +43,7 @@ public class Grid {
 	
 	public void learningReset(){
 		//move agent back to start
+		agentLocation.hasAgent = false;
 		agentLocation = agentStartLocation;
 		agentLocation.hasAgent = true;
 		
