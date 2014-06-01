@@ -1,0 +1,60 @@
+---------------
+ * Map start *
+---------------
+X X X X X X 
+X > - - - X 
+X X X G - X 
+X - - - X X 
+X - - - G X 
+X X X X X X 
+Location: (1,1)
+Agent heading: EAST
+You feel safe here...
+---------------
+
+X X X X X X 
+X - > - - X 
+X X X G - X 
+X - - - X X 
+X - - - G X 
+X X X X X X 
+Location: (2,1)
+Agent heading: EAST
+You feel safe here...
+---------------
+
+X X X X X X 
+X - - > - X 
+X X X G - X 
+X - - - X X 
+X - - - G X 
+X X X X X X 
+Location: (3,1)
+Agent heading: EAST
+You feel safe here...
+You see something glittering nearby...
+---------------
+
+X X X X X X 
+X - - - - X 
+X X X v - X 
+X - - - X X 
+X - - - G X 
+X X X X X X 
+Location: (3,2)
+Agent heading: SOUTH
+You found gold!
+---------------
+
+X X X X X X 
+X - - - - X 
+X X X - - X 
+X - - v X X 
+X - - - G X 
+X X X X X X 
+Location: (3,3)
+Agent heading: SOUTH
+You feel safe here...
+---------------
+
+
