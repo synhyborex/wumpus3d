@@ -11,6 +11,8 @@ import WumpusEnvironment.Model.Agent.*;
 import WumpusEnvironment.Model.Map.*;
 
 public class Logger extends JPanel implements ActionListener {
+	private static final long serialVersionUID = 1L;
+
 	public static final String logSeparator = "---------------\r\n";
 	
 	JScrollPane logScrollPane; //the scroll pane that will hold the log

@@ -1,7 +1,6 @@
 package WumpusEnvironment.Model.Map;
 
 import WumpusEnvironment.Model.Agent.*;
-import java.util.*;
 
 /**
  * Represents the underlying x-y grid the environment uses
@@ -39,7 +38,7 @@ public class Grid {
 	}
 	
 	private Grid(Node[][] grid){
-		this.grid = grid;
+		Grid.grid = grid;
 	}
 	
 	public void learningReset(){

@@ -1,8 +1,6 @@
 package WumpusEnvironment.Model.Agent;
 
 import java.io.*;
-import java.net.URL;
-import java.net.URLClassLoader;
 import javax.swing.*;
 
 public class AgentLoader {
@@ -21,7 +19,8 @@ public class AgentLoader {
 	    Object localObject = null;
 	    try
 	    {
-	      Class localClass = null;
+	      @SuppressWarnings("rawtypes")
+		  Class localClass = null;
 	      if (str2.equals("Agents")) {
 	        localClass = Class.forName("Agents." + str3);
 	      } else {

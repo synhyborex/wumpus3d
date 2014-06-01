@@ -2,23 +2,15 @@ package WumpusEnvironment.View.MainWindow;
 import WumpusEnvironment.Model.Agent.*;
 import WumpusEnvironment.Model.Map.*;
 
-import javax.media.opengl.*;
 import javax.media.opengl.awt.*;
 import javax.media.opengl.glu.*;
-import javax.media.opengl.DebugGL3;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.filechooser.FileFilter;
-
 import com.jogamp.opengl.util.FPSAnimator;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
-import java.nio.FloatBuffer; 
-import java.nio.IntBuffer;
-import java.util.*;
-import java.lang.*;
 
 public class ApplicationWindow  extends JFrame implements ActionListener{// implements GLEventListener{
 	private static final long serialVersionUID = 1L;

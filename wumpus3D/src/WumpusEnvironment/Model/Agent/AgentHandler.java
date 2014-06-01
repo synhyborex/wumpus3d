@@ -1,7 +1,5 @@
 package WumpusEnvironment.Model.Agent;
 
-import javax.swing.JButton;
-
 import WumpusEnvironment.Model.Map.*;
 import WumpusEnvironment.View.MainWindow.*;
 
