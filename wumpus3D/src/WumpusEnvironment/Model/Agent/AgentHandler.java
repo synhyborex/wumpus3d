@@ -9,17 +9,17 @@ public class AgentHandler extends Thread {
 	private Agent agent;
 	private Grid grid;
 	
-	public AgentHandler(Agent agent, Grid grid){
+	public AgentHandler(Agent agent){
 		autoStep = false;
 		stop = false;
 		this.agent = agent;
-		this.grid = grid;
+		this.grid = Grid.getInstance();
 	}
 	
 	public void run(){
-		while(!agent.isDead() && !grid.isSolved()){
+		for(;;){
 			if(stop) return;
-			if(autoStep){
+			if(isRunning()){
 				agentStep();
 			}
 		}
@@ -47,12 +47,14 @@ public class AgentHandler extends Thread {
 		}
 		if(agent.isDead()){
 			ApplicationWindow.disableMovementButtons();
+			ApplicationWindow.changeResetButton(true);
 			autoStep = false;
 			Logger.writeToLog("* You died! Better luck next time. *\r\n");
 			Logger.writeToLog("*** GAME OVER ***\r\n");
 		}
 		if(grid.isSolved()){
 			ApplicationWindow.disableMovementButtons();
+			ApplicationWindow.changeResetButton(true);
 			autoStep = false;
 			Logger.writeToLog("* You found all the gold! *\r\n");
 			Logger.writeToLog("*** GAME OVER ***\r\n");
