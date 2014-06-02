@@ -29,6 +29,12 @@ bug reports about Agents not working on every map.
 	- BasicMap, ChallengeMap, MiniMap, WumpusMap
 - TestBFSAgent, TestDFSAgent, TestUniformAgent 
 	- astar-map,bfs-map
+	- NOTE: BFS and DFS will look like they don't work with step or autostep other than
+	lighting up the floor. This is intended behavior and is a result of my badly programming
+	those Agents. This isn't a problem with the environment!
+	- NOTE: These maps are intended to have a "fairy". This is the little ball that jumps
+	around (this is what lights up the squares in BFS and DFS)--you can actually see it in
+	Uniform, but not in BFS and DFS.
 - TestModelBasedAgent 
 	- modelbased-map
 - TestReflexAgent 
