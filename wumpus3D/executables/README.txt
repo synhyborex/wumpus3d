@@ -6,6 +6,11 @@ Please refer to the proper documentation for more information about this applica
 However, since there is no good documentation, here are a few things to get you going:
 ENVIRONMENT:
 - To start the environment up, just run the file called "runEnvironment"
+	- Some users may not be able to open the environment. While I haven't found a formal fix
+	for this yet, make sure you have the latest version of Java installed. For others, 
+	installing JDK 7 or later fixes the problem. Here's a handy link to download the JDK
+	and the JRE if you need it: 
+	http://www.oracle.com/technetwork/java/javase/downloads/index.html
 - Once the environment loads up, go to the File menu and select an Agent. Since there is
 no documentation yet, it would be difficult to write your own Agent, so I've provided a number
 of example Agents
@@ -17,7 +22,7 @@ zoom in or out.
 - Use the slider bar at the top to change how long you wait between Agent steps.
 - The rest should be self-explanatory. Use the buttons at the top to watch the Agent get to 
 the gold.
-- REMEMBER, FEEDBACK IS IMPORTANT TO ME AS THIS IS NOT YET A FINAL PRODUCT!!!
+- REMEMBER, FEEDBACK IS IMPORTANT TO ME AS THIS IS NOT YET A FINAL PRODUCT!!
 *NOTE: There is a known FPS issue on the maps that have lots and lots of objects. For this
 reason, sometimes it may look like the Agent is skipping steps in auto-step mode. This can
 be remedied by sliding the bar higher so the frame has a chance to refresh itself.
