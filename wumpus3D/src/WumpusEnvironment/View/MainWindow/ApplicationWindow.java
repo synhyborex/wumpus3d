@@ -150,7 +150,7 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 		}
 		else if(source.equals(stopButton)){
 			stopButton.setEnabled(false);
-			enableButtons(new JButton[]{stepButton,autoStepButton});
+			enableButtons(new JButton[]{stepButton,autoStepButton,resetButton});
 			agentHandler.setAutoStep(false);
 		}
 		else if(source.equals(stepButton)){
@@ -158,7 +158,7 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 		}
 		else if(source.equals(autoStepButton)){
 			stopButton.setEnabled(true);
-			disableButtons(new JButton[]{stepButton,autoStepButton});
+			disableButtons(new JButton[]{stepButton,autoStepButton,resetButton});
 			agentHandler.setAutoStep(true);
 		}
 		else if(source.equals(resetButton)){
@@ -287,7 +287,7 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 		if(fairy){
 			agent.setFairy(new Fairy(grid,grid.getAgentLocation()));
 		}
-		agentHandler = new AgentHandler(agent,grid); //create the agent handler thread
+		agentHandler = new AgentHandler(agent); //create the agent handler thread
 		//print start of log
 		Logger.clear(); //clear any text that was there before
 		Logger.printMapStart();
@@ -327,5 +327,9 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 	
 	public static void disableMovementButtons(){
 		disableButtons(new JButton[]{stopButton,stepButton,autoStepButton});
+	}
+	
+	public static void changeResetButton(boolean val){
+		resetButton.setEnabled(val);
 	}
 }
