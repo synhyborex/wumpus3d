@@ -1,1 +1,1 @@
-javac -Xlint:unchecked -classpath WumpusEnvironment.jar;. .\Agents\*.java
+javac -Xlint:unchecked -classpath WumpusEnvironment.jar;. ./Agents/*.java
