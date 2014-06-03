@@ -1,5 +1,6 @@
 package WumpusEnvironment.View.MainWindow;
 import WumpusEnvironment.Model.Agent.*;
+import WumpusEnvironment.Model.Agent.Search.Fairy;
 import WumpusEnvironment.Model.Map.*;
 
 import javax.media.opengl.awt.*;
@@ -117,6 +118,7 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 	        if(result == JFileChooser.APPROVE_OPTION){
 	        	agent = AgentLoader.loadAgentFromFile(agentChooser.getSelectedFile());
 	        	if(agent != null){
+	        		AgentLoader.loadCostsFromFile(new File("./properties.dat"));
 		        	addOtherMenus();
 		        	showMainWindowContents();
 	        	}

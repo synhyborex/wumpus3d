@@ -1,6 +1,8 @@
 package WumpusEnvironment.Model.Agent;
 
 import WumpusEnvironment.View.MainWindow.*;
+import WumpusEnvironment.Model.Agent.Search.Fairy;
+import WumpusEnvironment.Model.Agent.Search.Fringe;
 import WumpusEnvironment.Model.Map.*;
 
 import java.util.*;
@@ -49,12 +51,15 @@ public abstract class Agent {
 	public static final int YES = 9;
 	
 	//movement and search costs
-	public static final int MOVE_COST = 20;
-	public static final int TURN_COST = 10;
-	public static final int HINT_COST = 25;
-	public static final int ARROW_COST = 5;
-	public static final int GOLD_REWARD = 1000;
-	public static final int MAX_POINTS = 20000;
+	private static int MOVE_COST = 20;
+	private static int TURN_COST = 5;
+	private static int GOLD_HINT_COST = 25;
+	private static int CURRENT_NODE_COST = 1;
+	private static int ADJACENT_NODE_COST = 5;
+	private static int HIT_MINION_COST = 1000;
+	private static int ARROW_COST = 10;
+	private static int GOLD_REWARD = 5000;
+	private static int START_POINTS = 10000;
 	
 	/**
 	 * The grid on which the <code>Agent</code> is operating
@@ -117,6 +122,25 @@ public abstract class Agent {
 		movementCost = 0;
 	}
 	
+	/**
+	 * Initializes the costs for Agent actions from the properties.dat file.
+	 * @param costs the array of costs--this is only done to avoid having too many input parameters
+	 */
+	public static void initCosts(int[] costs){
+		START_POINTS = costs[0];
+		MOVE_COST = costs[1];
+		TURN_COST = costs[2];
+		ARROW_COST = costs[3];
+		CURRENT_NODE_COST = costs[4];
+		ADJACENT_NODE_COST = costs[5];
+		GOLD_HINT_COST = costs[6];
+		HIT_MINION_COST = costs[7];
+		GOLD_REWARD = costs[8];
+	}
+	
+	/**
+	 * The reset that happens to the <code>Agent</code> regardless of whether or not <code>reset()</code> is implemented.
+	 */
 	public void privateReset(){
 		if(MapLoader.isSearchMap())
 			fairy = new Fairy(grid,startNode);
@@ -132,6 +156,9 @@ public abstract class Agent {
 		reset(); // the student's reset
 	}
 	
+	/**
+	 * Resets the <code>Agent</code> in the case that learning is being tested.
+	 */
 	public void learningReset(){
 		if(MapLoader.isSearchMap())
 			fairy = new Fairy(grid,startNode);
@@ -144,6 +171,10 @@ public abstract class Agent {
 		grid = Grid.getInstance();
 	}
 	
+	/**
+	 * Sets the start location of the <code>Agent</code> to the given <code>Node</code>
+	 * @param n the <code>Node</code> which will be the start location for the <code>Agent</code>
+	 */
 	public void setStartLocation(Node n){
 		startNode = grid.getNode(n.getX(),n.getY());
 		currentNode = startNode;
@@ -387,7 +418,7 @@ public abstract class Agent {
 	 * @return the distance to the closest goal from the <code>Agent</code>
 	 */
 	public int getDistanceToGold(){
-		movementCost += HINT_COST;
+		movementCost += GOLD_HINT_COST;
 		return grid.distanceToClosestGoal(currentNode);
 	}
 	
@@ -400,7 +431,7 @@ public abstract class Agent {
 	 * @return the distance to the closest goal from the given <code>Node</code>
 	 */
 	public int getDistanceToGold(Node node){
-		movementCost += HINT_COST;
+		movementCost += GOLD_HINT_COST;
 		return grid.distanceToClosestGoal(node);
 	}
 	
@@ -409,7 +440,7 @@ public abstract class Agent {
 	 * @return the direction of the closest goal from the location of the <code>Agent</code>
 	 */
 	public int getDirectionOfGold(){
-		movementCost += HINT_COST;
+		movementCost += GOLD_HINT_COST;
 		return grid.directionOfClosestGoal(currentNode);
 	}
 	
@@ -418,7 +449,7 @@ public abstract class Agent {
 	 * @return the direction of the closest goal from the location of the given <code>Node</code>
 	 */
 	public int getDirectionOfGold(Node node){
-		movementCost += HINT_COST;
+		movementCost += GOLD_HINT_COST;
 		return grid.directionOfClosestGoal(node);
 	}
 	
@@ -447,6 +478,7 @@ public abstract class Agent {
 				break;
 			case DAMAGED_BY_MINION:
 				//what to do if we hit a minion
+				movementCost += HIT_MINION_COST;
 				lifePoints -= 10;
 				if(lifePoints == 0)
 					grid.setNodeType(currentNode.getX(),currentNode.getY(),Grid.AGENT,false); //Agent is dead
@@ -463,6 +495,7 @@ public abstract class Agent {
 				break;
 			case GOAL_FOUND:
 				//what to do if we hit a goal
+				movementCost -= GOLD_REWARD;
 				goalsSoFar++;
 				grid.setNodeType(currentNode.getX(), currentNode.getY(), Grid.GOAL, false);
 				break;
@@ -629,7 +662,10 @@ public abstract class Agent {
 	 * Returns the current <code>Node</code> that the <code>Agent</code> is occupying
 	 * @return the current <code>Node</code> that the <code>Agent</code> is occupying
 	 */
-	public Node getCurrentLocation(){return grid.getNode(currentNode.getX(),currentNode.getY());}
+	public Node getCurrentLocation(){
+		movementCost += CURRENT_NODE_COST;
+		return grid.getNode(currentNode.getX(),currentNode.getY());
+	}
 	
 	/**
 	 * Returns whether or not the <code>Agent</code> is dead
@@ -653,7 +689,7 @@ public abstract class Agent {
 	}
 	
 	/**
-	 * Returns whether or not one of the <code>Nodes</code> adjacent to the <code>Agent</code> contains a Wumpus minion
+	 * Returns whether or not one of the <code>Nodes</code> adjacent to the given <code>Node</code> contains a Wumpus minion
 	 * @param node the <code>Node</code> from which you want want to test if there's a Wumpus minion adjacent
 	 * @return true if one of the <code>Nodes</code> adjacent to the <code>Agent</code> contains a Wumpus minion, false otherwise
 	 */
@@ -672,7 +708,7 @@ public abstract class Agent {
 	}
 	
 	/**
-	 * Returns whether or not one of the <code>Nodes</code> adjacent to the <code>Agent</code> contains a Wumpus
+	 * Returns whether or not one of the <code>Nodes</code> adjacent to the given <code>Node</code> contains a Wumpus
 	 * @param node the <code>Node</code> from which you want want to test if there's a Wumpus adjacent
 	 * @return true if one of the <code>Nodes</code> adjacent to the <code>Agent</code> contains a Wumpus, false otherwise
 	 */
@@ -691,7 +727,7 @@ public abstract class Agent {
 	}
 	
 	/**
-	 * Returns whether or not one of the <code>Nodes</code> adjacent to the <code>Agent</code> contains a pit
+	 * Returns whether or not one of the <code>Nodes</code> adjacent to the given <code>Node</code> contains a pit
 	 * @param node the <code>Node</code> from which you want want to test if there's a pit adjacent
 	 * @return true if one of the <code>Nodes</code> adjacent to the <code>Agent</code> contains a pit, false otherwise
 	 */
@@ -710,7 +746,7 @@ public abstract class Agent {
 	}
 	
 	/**
-	 * Returns whether or not one of the <code>Nodes</code> adjacent to the <code>Agent</code> contains gold
+	 * Returns whether or not one of the <code>Nodes</code> adjacent to the given <code>Node</code> contains gold
 	 * @param node the <code>Node</code> from which you want want to test if there's gold adjacent
 	 * @return true if one of the <code>Nodes</code> adjacent to the <code>Agent</code> contains gold, false otherwise
 	 */
@@ -726,6 +762,7 @@ public abstract class Agent {
 	 * @return the <code>Node</code> adjacent to the given <code>Node</code> in the direction specified
 	 */
 	private Node getAdjacentNode(Node node, int direction){
+		movementCost += ADJACENT_NODE_COST;
 		Node ret;
 		switch(direction){
 			case NORTH:
@@ -784,9 +821,10 @@ public abstract class Agent {
 	 * @return
 	 */
 	public int getPerformanceValue(){
+		if(isDead()) return 0; //no points if you die
 		if(hasFairy())
-			return MAX_POINTS - movementCost - fairy.getSearchCost();
-		else return MAX_POINTS - movementCost;
+			return START_POINTS - movementCost - fairy.getSearchCost();
+		else return START_POINTS - movementCost;
 	}
 	
 	/**

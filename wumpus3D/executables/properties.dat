@@ -1,0 +1,9 @@
+start_points 10000
+move_cost 20
+turn_cost 5
+arrow_cost 10
+curr_node 1
+adj_node 5
+gold_hint 25
+hit_minion 1000
+gold_reward 5000

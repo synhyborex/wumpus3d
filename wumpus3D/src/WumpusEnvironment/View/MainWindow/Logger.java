@@ -86,6 +86,7 @@ public class Logger extends JPanel implements ActionListener {
 		writeToLog("\r\n");
 		writeToLog(a.locationToString()); //print the Agent's location
 		writeToLog("Performance Value: " + a.getPerformanceValue() + "\r\n");
+		writeToLog("Life Points: " + a.getLifePoints() + "\r\n");
 		writeToLog(a.movementStatusToString()); //print what happened last step
 	}
 	
