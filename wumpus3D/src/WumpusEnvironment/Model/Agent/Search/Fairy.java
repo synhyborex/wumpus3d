@@ -16,22 +16,22 @@ public class Fairy {
 	/**
 	 * The grid on which the <code>Fairy</code> is operating
 	 */
-	protected static Grid grid;
+	private static Grid grid;
 	
 	/**
 	 * How many goals have been accomplished so far
 	 */
-	protected int goalsSoFar;
+	private int goalsSoFar;
 	
 	/**
 	 * The Node the <code>Fairy</code> is currently occupying
 	 */
-	protected Node currentNode;
+	private Node currentNode;
 	
 	/**
 	 * The total cost of searching.
 	 */
-	protected int searchCost;
+	private int searchCost;
 
 	public Fairy(Grid g, Node start) {
 		grid = g;
@@ -90,7 +90,7 @@ public class Fairy {
 	 * Determines the value of what is occupying the <code>Node</code> other than the <code>Agent</code>
 	 * @return the value of what is occupying the <code>Node</code> other than the <code>Agent</code>
 	 */
-	protected int newNodeStatus(){
+	private int newNodeStatus(){
 		int value = SAFE;
 		if(currentNode.hasGoal()){
 			value =  GOAL_FOUND;

@@ -812,14 +812,6 @@ public abstract class Agent {
 	 * NEEDS TO BE IMPLEMENTED.
 	 * @return
 	 */
-	public int getGoldPoints(){
-		return 0;
-	}
-	
-	/**
-	 * NEEDS TO BE IMPLEMENTED.
-	 * @return
-	 */
 	public int getPerformanceValue(){
 		if(isDead()) return 0; //no points if you die
 		if(hasFairy())
@@ -919,6 +911,10 @@ public abstract class Agent {
 		return ret;
 	}
 	
+	/**
+	 * Returns the string to be displayed when the <code>Agent</code> is considered to be safe
+	 * @return the string to be displayed when the <code>Agent</code> is considered to be safe
+	 */
 	private String safeString(){
 		String ret;
 		boolean wumpus = nearWumpus(), pit = nearPit(), minion = nearMinion();
@@ -942,6 +938,10 @@ public abstract class Agent {
 		return ret;
 	}
 	
+	/**
+	 * Gets the <code>Agent</code>'s current location and converts it to a string
+	 * @return the <code>Agent</code>'s current location as a string
+	 */
 	public String locationToString(){
 		return "Location: (" + currentNode.getX() + "," + currentNode.getY() + ")\r\n";
 	}
