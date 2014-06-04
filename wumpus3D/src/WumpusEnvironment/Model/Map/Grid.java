@@ -16,16 +16,16 @@ public class Grid {
 	public static final int AGENT = 6;
 	public static final int FAIRY = 7;
 	
-	protected int width; //the horizontal number of Nodes
-	protected int height; //the vertical number of Nodes
-	protected int numGoals; //the number of goal Nodes on the map
-	protected boolean solved; //whether or not the map has been solved
-	protected int learningCount; //whether or not the map will test learning
-	protected static Node[][] grid; //the map we're operating on
-	protected static Node[] goalLocations; //the locations of the goals on the map
-	protected static Node agentLocation; //the location of the Agent on the map
-	protected static int agentHeading; //the way the Agent is facing
-	protected static Node agentStartLocation; //the location of the Agent at the initialization of the map
+	private int width; //the horizontal number of Nodes
+	private int height; //the vertical number of Nodes
+	private int numGoals; //the number of goal Nodes on the map
+	private boolean solved; //whether or not the map has been solved
+	private int learningCount; //whether or not the map will test learning
+	private static Node[][] grid; //the map we're operating on
+	private static Node[] goalLocations; //the locations of the goals on the map
+	private static Node agentLocation; //the location of the Agent on the map
+	private static int agentHeading; //the way the Agent is facing
+	private static Node agentStartLocation; //the location of the Agent at the initialization of the map
 	
 	//singleton
 	private static Grid instance = new Grid();
@@ -119,61 +119,6 @@ public class Grid {
 		agentStartLocation = new Node(0,0);
 	}
 	
-	/**
-	 * Prints the current Grid based on what each Node contains
-	 */
-	public void printGrid(){
-		for(int i = 0; i < height; i++){
-			for(int j = 0; j < width; j++){
-				if(grid[i][j].hasGoal)
-					System.out.print("G ");
-				else if(grid[i][j].isWall)
-					System.out.print("X ");
-				else if(grid[i][j].hasWumpus)
-					System.out.print("W ");
-				else if(grid[i][j].hasPit)
-					System.out.print("P ");
-				else if(grid[i][j].hasMinion)
-					System.out.print("M ");
-				else if(grid[i][j].hasAgent)
-					System.out.print(Agent.headingToArrowString() + " ");
-				else if(grid[i][j].hasFairy)
-					System.out.print("F ");
-				else System.out.print("- ");
-			}
-			System.out.println();
-		}
-	}
-	
-	/**
-	 * Returns the current Grid as a single string
-	 */
-	public String gridToString(){
-		StringBuilder sb = new StringBuilder();
-		for(int i = 0; i < height; i++){
-			for(int j = 0; j < width; j++){
-				if(grid[i][j].hasGoal)
-					sb.append("G ");
-				else if(grid[i][j].isWall)
-					sb.append("X ");
-				else if(grid[i][j].hasWumpus)
-					sb.append("W ");
-				else if(grid[i][j].hasPit)
-					sb.append("P ");
-				else if(grid[i][j].hasMinion)
-					sb.append("M ");
-				else if(grid[i][j].hasAgent)
-					sb.append(Agent.headingToArrowString() + " ");
-				else if(grid[i][j].hasFairy)
-					sb.append("F ");
-				else sb.append("- ");
-			}
-			sb.append("\r\n");
-		}
-		
-		return sb.toString();
-	}
-	
 	public void addToEvaluated(Node n){
 		grid[n.getY()][n.getX()].setAsEvaluated();
 	}
@@ -217,7 +162,7 @@ public class Grid {
 	//if this ever throws arrayindexoutofboundsexception then something is very wrong.
 	//the only time it will ever get there is if for some reason this method is called
 	//after all goals have been found...in which case it should be game over anyway
-	protected Node findClosestGoal(Node node){
+	private Node findClosestGoal(Node node){
 		if(numGoals == 1) return goalLocations[0];
 		int ret = -1;
 		int shortest = Integer.MAX_VALUE;
@@ -233,7 +178,7 @@ public class Grid {
 		return goalLocations[ret];
 	}
 	
-	protected int distanceBetweenNodes(Node a, Node b){
+	private int distanceBetweenNodes(Node a, Node b){
 		return Math.abs(a.getX()-b.getX()) + Math.abs(a.getY()-b.getY());
 	}
 
