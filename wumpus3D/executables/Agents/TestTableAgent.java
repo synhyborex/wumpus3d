@@ -25,13 +25,13 @@ public class TestTableAgent extends Agent {
 	    Node n = getCurrentLocation();
 	    int x = n.getX();
 	    int y = n.getY();
-      getDirectionOfGold();
 
 	    // Carry out actions
 	    turnTo(directionTable[x][y]);
       if(nearWumpus())
         fireArrow(HEADING);
 	    moveForward();
+	    log(""+getDistanceToGold());
 
 	}
 

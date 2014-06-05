@@ -110,7 +110,7 @@ public class TestUniformAgent extends Agent
       double pathCost = curr.pathCost + add.getCost();
       pathCost += MOVE_COST + getTurnCost(HEADING,curr.node,add);
       GreedyNode g = new GreedyNode(pathCost,add);
-      if(!add.isEvaluated() && !add.isWall()){
+      if(!add.isEvaluated() && !add.hasWall()){
         if(!pq.contains(g)){ //valid
           pq.offer(g);
           cost[add.getY()][add.getX()] = pathCost; //update path cost to this Node
@@ -130,7 +130,7 @@ public class TestUniformAgent extends Agent
       pathCost = curr.pathCost + add.getCost();
       pathCost += MOVE_COST + getTurnCost(HEADING,curr.node,add);
       g = new GreedyNode(pathCost,add);
-      if(!add.isEvaluated() && !add.isWall()){
+      if(!add.isEvaluated() && !add.hasWall()){
         if(!pq.contains(g)){ //valid
           pq.offer(g);
           cost[add.getY()][add.getX()] = pathCost; //update path cost to this Node
@@ -150,7 +150,7 @@ public class TestUniformAgent extends Agent
       pathCost = curr.pathCost + add.getCost();
       pathCost += MOVE_COST + getTurnCost(HEADING,curr.node,add);
       g = new GreedyNode(pathCost,add);
-      if(!add.isEvaluated() && !add.isWall()){
+      if(!add.isEvaluated() && !add.hasWall()){
         if(!pq.contains(g)){ //valid
           pq.offer(g);
           cost[add.getY()][add.getX()] = pathCost; //update path cost to this Node
@@ -170,7 +170,7 @@ public class TestUniformAgent extends Agent
       pathCost = curr.pathCost + add.getCost();
       pathCost += MOVE_COST + getTurnCost(HEADING,curr.node,add);
       g = new GreedyNode(pathCost,add);
-      if(!add.isEvaluated() && !add.isWall()){
+      if(!add.isEvaluated() && !add.hasWall()){
         if(!pq.contains(g)){ //valid
           pq.offer(g);
           cost[add.getY()][add.getX()] = pathCost; //update path cost to this Node
@@ -203,7 +203,7 @@ public class TestUniformAgent extends Agent
     else if(dirToTurn == -1) //same square
       path.remove(0);
 
-    if(getCurrentLocation().hasGoal()){
+    if(getCurrentLocation().hasGold()){
       log("\nGoal Reached!");
       //log("Total Search Cost: " + getSearchCost());
       log("Total Movement Cost: " + getMovementCost());

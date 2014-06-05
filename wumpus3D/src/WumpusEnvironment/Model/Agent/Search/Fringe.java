@@ -34,5 +34,17 @@ public class Fringe {
 	public ArrayDeque<Node> getFringe(){
 		return fringe;
 	}
+	
+	public String toString(){
+		StringBuilder sb = new StringBuilder("{");
+		for(Node n : fringe){
+			sb.append("[" + n.getX() + "," + n.getY() + "], ");
+		}
+		sb.deleteCharAt(sb.length()-1);
+		sb.deleteCharAt(sb.length()-1);
+		sb.append("}");
+		
+		return sb.toString();
+	}
 
 }

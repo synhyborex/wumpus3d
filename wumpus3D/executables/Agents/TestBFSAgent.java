@@ -22,6 +22,7 @@ public class TestBFSAgent extends Agent {
 	    addToFringe(getFairyLocation()); //add first node to fringe
 	    //log(getSearchLocation().getX() + " " + getSearchLocation().getY());
 	    while(peekNextFringeNode() != null){ //while there are still nodes to visit
+	    	log(fringeToString());
 	      Node curr = getNextFringeNode(); //get next node in fringe
 	      if(!getFairyLocation().isEvaluated()){
 	    	  System.out.println("uh oh " + getFairyLocation().getX() + " " + getFairyLocation().getY());
@@ -44,16 +45,16 @@ public class TestBFSAgent extends Agent {
 
 	      //add new nodes
 	      Node add = getNorthOfFairyLocation(); //add north location
-	      if(!add.isEvaluated() && !fringeContains(add) && !add.isWall())
+	      if(!add.isEvaluated() && !fringeContains(add) && !add.hasWall())
 	        addToFringe(add);
 	      add = getEastOfFairyLocation(); //add east location
-	      if(!add.isEvaluated() && !fringeContains(add) && !add.isWall())
+	      if(!add.isEvaluated() && !fringeContains(add) && !add.hasWall())
 	        addToFringe(add);
 	      add = getSouthOfFairyLocation(); //add south location
-	      if(!add.isEvaluated() && !fringeContains(add) && !add.isWall())
+	      if(!add.isEvaluated() && !fringeContains(add) && !add.hasWall())
 	        addToFringe(add);
 	      add = getWestOfFairyLocation(); //add west location
-	      if(!add.isEvaluated() && !fringeContains(add) && !add.isWall())
+	      if(!add.isEvaluated() && !fringeContains(add) && !add.hasWall())
 	        addToFringe(add);
 	      //log(""+getFringe().size());
 	    }

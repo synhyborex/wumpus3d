@@ -4,14 +4,15 @@ import WumpusEnvironment.Model.Map.*;
 
 public class Fairy {
 	
-	public static final int SAFE = 0;
-	public static final int HIT_WALL = 1;
-	public static final int HIT_WUMPUS = 2;
-	public static final int HIT_MINION = 3;
-	public static final int HIT_PIT = 4;
-	public static final int GOAL_FOUND = 5;
+	private static final int SAFE = 0;
+	private static final int HIT_WALL = 1;
+	private static final int HIT_WUMPUS = 2;
+	private static final int HIT_MINION = 3;
+	private static final int HIT_PIT = 4;
+	private static final int GOAL_FOUND = 5;
 	
-	public static final int SEARCH_COST = 1;
+	private static final int SEARCH_COST = 1;
+	private static final int ADJ_COST = 5;
 	
 	/**
 	 * The grid on which the <code>Fairy</code> is operating
@@ -33,13 +34,13 @@ public class Fairy {
 	 */
 	private int searchCost;
 
-	public Fairy(Grid g, Node start) {
-		grid = g;
+	public Fairy(Node start) {
 		currentNode = start;
 		goalsSoFar = 0;
 		searchCost = 0;
 		
 		//put Fairy on Grid
+		grid = Grid.getInstance();
 		grid.setNodeType(currentNode.getX(),currentNode.getY(),Grid.FAIRY,true);
 	}
 	
@@ -47,17 +48,17 @@ public class Fairy {
 	 * Returns whether the <code>Fairy</code> has found all goals on the map
 	 * @return <code>true</code> if all goals have been found, <code>false</code> otherwise
 	 */
-	public boolean fairyFoundAllGoals(){
+	public boolean fairyFoundAllGold(){
 		return goalsSoFar == grid.getNumGoals();
 	}
 	
 	/**
-	 * A variation of <code>fairyFoundAllGoals()</code> that should only be 
+	 * A variation of <code>fairyFoundAllGold()</code> that should only be 
 	 * used on maps with only one goal. Use on maps with more will return true
 	 * as long as the <code>Fairy</code> has found at least one of the goals.
 	 * @return <code>true</code> if the goal has been found, <code>false</code> otherwise
 	 */
-	public boolean fairyFoundGoal(){
+	public boolean fairyFoundGold(){
 		return goalsSoFar >= 1;
 	}
 	
@@ -72,6 +73,7 @@ public class Fairy {
 	}
 	
 	public Node getFairyLocation(){
+		searchCost += SEARCH_COST;
 		return grid.getNode(currentNode.getX(),currentNode.getY());
 	}
 	
@@ -92,10 +94,11 @@ public class Fairy {
 	 */
 	private int newNodeStatus(){
 		int value = SAFE;
-		if(currentNode.hasGoal()){
+		if(currentNode.hasGold()){
 			value =  GOAL_FOUND;
 			goalsSoFar++;
 		}
+		else if(currentNode.hasWall()) value =  HIT_WALL;
 		else if(currentNode.hasWumpus()) value =  HIT_WUMPUS;
 		else if(currentNode.hasPit()) value =  HIT_PIT;
 		else if(currentNode.hasMinion()) value = HIT_MINION;
@@ -104,18 +107,22 @@ public class Fairy {
 	}
 	
 	public Node getNorthOfFairyLocation(){
+		searchCost += ADJ_COST;
 		return grid.getNode(currentNode.getX(),currentNode.getY()-1);
 	}
 	
 	public Node getEastOfFairyLocation(){
+		searchCost += ADJ_COST;
 		return grid.getNode(currentNode.getX()+1,currentNode.getY());
 	}
 	
 	public Node getSouthOfFairyLocation(){
+		searchCost += ADJ_COST;
 		return grid.getNode(currentNode.getX(),currentNode.getY()+1);
 	}
 	
 	public Node getWestOfFairyLocation(){
+		searchCost += ADJ_COST;
 		return grid.getNode(currentNode.getX()-1,currentNode.getY());
 	}
 	

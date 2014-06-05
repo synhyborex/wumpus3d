@@ -12,7 +12,7 @@ public class Node implements Comparable<Node>{
 	
 	//status variables
 	protected boolean hasGoal;
-	protected boolean isWall;
+	protected boolean hasWall;
 	protected boolean hasWumpus;
 	protected boolean hasPit;
 	protected boolean hasMinion;
@@ -39,7 +39,7 @@ public class Node implements Comparable<Node>{
 		this.x = x;
 		this.y = y;
 		hasGoal = false;
-		isWall = false;
+		hasWall = false;
 		hasPit = false;
 		hasMinion = false;
 		hasWumpus = false;
@@ -57,7 +57,7 @@ public class Node implements Comparable<Node>{
 		this.x = n.x;
 		this.y = n.y;
 		this.hasGoal = n.hasGoal;
-		this.isWall = n.isWall;
+		this.hasWall = n.hasWall;
 		this.hasPit = n.hasPit;
 		this.hasWumpus = n.hasWumpus;
 		this.hasAgent = n.hasAgent;
@@ -82,8 +82,8 @@ public class Node implements Comparable<Node>{
 	public void setAsEvaluated(){this.evaluated = true;}
 	public int getWumpusStatus(){return wumpusStatus;}
 	public int getMinionStatus(){return minionStatus;}
-	public boolean hasGoal(){return hasGoal;}
-	public boolean isWall(){return isWall;}
+	public boolean hasGold(){return hasGoal;}
+	public boolean hasWall(){return hasWall;}
 	public boolean hasWumpus(){return hasWumpus;}
 	public boolean hasPit(){return hasPit;}
 	public boolean hasMinion(){return hasMinion;}

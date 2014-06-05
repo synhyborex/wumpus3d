@@ -21,7 +21,6 @@ public abstract class Agent {
 	public static int HEADING; //the direction the Agent is facing
 	
 	//agent status variables
-	public static final int DEAD = 0;
 	public static final int SAFE = 1;
 	public static final int HIT_WALL = 2;
 	public static final int DIED_TO_WUMPUS = 3;
@@ -143,7 +142,7 @@ public abstract class Agent {
 	 */
 	public void privateReset(){
 		if(MapLoader.isSearchMap())
-			fairy = new Fairy(grid,startNode);
+			fairy = new Fairy(startNode);
 		else fairy = null;
 		fringe = new Fringe();
 		currentNodeStatus = SAFE;
@@ -161,7 +160,7 @@ public abstract class Agent {
 	 */
 	public void learningReset(){
 		if(MapLoader.isSearchMap())
-			fairy = new Fairy(grid,startNode);
+			fairy = new Fairy(startNode);
 		else fairy = null;
 		currentNodeStatus = SAFE;
 		currentNode = startNode;
@@ -217,8 +216,16 @@ public abstract class Agent {
 	 */
 	private void gameOverSuccess(){
 		if(!grid.trySetSolved()){
+			Logger.generateLogEntry(this, grid);
+			Logger.writeToLog(Logger.logSeparator);
+			Logger.writeToLog("\r\n\r\nLEARNING RESET\r\n");
 			grid.learningReset();
 			learningReset();
+			//sleep after resetting to let user acclimate
+			try {
+				Thread.sleep(1500);
+			} catch (InterruptedException e) {
+			}
 		}
 	}
 	
@@ -255,7 +262,7 @@ public abstract class Agent {
 				addToY = 0;
 		}
 		//keep moving the arrow until it reaches an end condition
-		while(!grid.getNode(arrowPos.getX()+addToX,arrowPos.getY()+addToY).isWall()){
+		while(!grid.getNode(arrowPos.getX()+addToX,arrowPos.getY()+addToY).hasWall()){
 			arrowPos = grid.getNode(arrowPos.getX()+addToX,arrowPos.getY()+addToY);
 			if(arrowPos.hasMinion() && arrowPos.getMinionStatus() != Node.DEAD){
 				grid.setNodeType(arrowPos.getX(),arrowPos.getY(),Grid.MINION,false); //there is no longer a minion here
@@ -278,7 +285,7 @@ public abstract class Agent {
 	
 	/**
 	 * Moves the <code>Agent<code> forward by one space, if possible.
-	 * @return the value of what is occupying the <code>Node</code> other than the <code>Agent</code>, or SAFE if the Agent is alone
+	 * @return the status of the <code>Agent</code> after the move
 	 */
 	public int moveForward(){
 		movementCost += MOVE_COST;
@@ -290,25 +297,25 @@ public abstract class Agent {
 		int addToX = 0, addToY = 0;
 		switch(HEADING){
 			case NORTH:
-				if(!grid.getNode(currentNode.getX(),currentNode.getY()-1).isWall()){
+				if(!grid.getNode(currentNode.getX(),currentNode.getY()-1).hasWall()){
 					addToX = 0;
 					addToY = -1;
 				}
 				break;
 			case EAST:
-				if(!grid.getNode(currentNode.getX()+1,currentNode.getY()).isWall()){
+				if(!grid.getNode(currentNode.getX()+1,currentNode.getY()).hasWall()){
 					addToX = 1;
 					addToY = 0;
 				}
 				break;
 			case SOUTH:
-				if(!grid.getNode(currentNode.getX(),currentNode.getY()+1).isWall()){
+				if(!grid.getNode(currentNode.getX(),currentNode.getY()+1).hasWall()){
 					addToX = 0;
 					addToY = 1;
 				}
 				break;
 			case WEST:
-				if(!grid.getNode(currentNode.getX()-1,currentNode.getY()).isWall()){
+				if(!grid.getNode(currentNode.getX()-1,currentNode.getY()).hasWall()){
 					addToX = -1;
 					addToY = 0;
 				}
@@ -381,33 +388,37 @@ public abstract class Agent {
 	/**
 	 * Moves the <code>Agent</code> north of its current location
 	 */
-	public void moveNorth(){
-		turnTo(NORTH);
-		moveForward();
+	public int moveNorth(){
+		if(HEADING != NORTH) //don't want to use turn cost if already facing there
+			turnTo(NORTH);
+		return moveForward();
 	}
 	
 	/**
 	 * Moves the <code>Agent</code> east of its current location
 	 */
-	public void moveEast(){
-		turnTo(EAST);
-		moveForward();
+	public int moveEast(){
+		if(HEADING != EAST) //don't want to use turn cost if already facing there
+			turnTo(EAST);
+		return moveForward();
 	}
 	
 	/**
 	 * Moves the <code>Agent</code> south of its current location
 	 */
-	public void moveSouth(){
-		turnTo(SOUTH);
-		moveForward();
+	public int moveSouth(){
+		if(HEADING != SOUTH) //don't want to use turn cost if already facing there
+			turnTo(SOUTH);
+		return moveForward();
 	}
 	
 	/**
 	 * Moves the <code>Agent</code> west of its current location
 	 */
-	public void moveWest(){
-		turnTo(WEST);
-		moveForward();
+	public int moveWest(){
+		if(HEADING != WEST) //don't want to use turn cost if already facing there
+			turnTo(WEST);
+		return moveForward();
 	}
 	
 	/**
@@ -459,7 +470,7 @@ public abstract class Agent {
 	 */
 	private int currNodeStatus(){
 		int value = SAFE;
-		if(currentNode.hasGoal()) value = GOAL_FOUND;
+		if(currentNode.hasGold()) value = GOAL_FOUND;
 		else if(currentNode.hasWumpus() && currentNode.getWumpusStatus() != Node.DEAD) value = DIED_TO_WUMPUS;
 		else if(currentNode.hasPit()) value = DIED_TO_PIT;
 		else if(currentNode.hasMinion() && currentNode.getMinionStatus() != Node.DEAD) value = DAMAGED_BY_MINION;
@@ -618,15 +629,19 @@ public abstract class Agent {
 		return fringe.getFringe();
 	}
 	
+	public String fringeToString(){
+		return fringe.toString();
+	}
+	
 	/* 
 	 * methods that we will punt to the Fairy class  
 	 */
 	public boolean fairyFoundAllGoals(){
-		return fairy.fairyFoundAllGoals();
+		return fairy.fairyFoundAllGold();
 	}
 	
 	public boolean fairyFoundGoal(){
-		return fairy.fairyFoundGoal();
+		return fairy.fairyFoundGold();
 	}
 	
 	public int fairyGoalsRemaining(){
@@ -637,8 +652,8 @@ public abstract class Agent {
 		return fairy.getFairyLocation();
 	}
 	
-	public void moveFairyLocation(Node loc){
-		fairy.moveFairyLocation(loc);
+	public int moveFairyLocation(Node loc){
+		return fairy.moveFairyLocation(loc);
 	}
 	
 	public Node getNorthOfFairyLocation(){
@@ -675,8 +690,20 @@ public abstract class Agent {
 		return lifePoints == 0;
 	}
 	
+	/**
+	 * Returns whether or not the map has been solved.
+	 * @return whether or not the map has been solved.
+	 */
 	public boolean solvedPuzzle(){
 		return goalsSoFar == grid.getNumGoals();
+	}
+	
+	/**
+	 * Returns the current number of points the <code>Agent</code> has earned from finding gold.
+	 * @return the current number of points the <code>Agent</code> has earned from finding gold.
+	 */
+	public int getGoldPoints(){
+		return goalsSoFar * GOLD_REWARD;
 	}
 	
 	/**
@@ -741,8 +768,8 @@ public abstract class Agent {
 	 * @return true if one of the <code>Nodes</code> adjacent to the <code>Agent</code> contains gold, false otherwise
 	 */
 	public boolean nearGold(){
-		return (getAdjacentNode(currentNode,NORTH).hasGoal() || getAdjacentNode(currentNode,EAST).hasGoal()
-				|| getAdjacentNode(currentNode,SOUTH).hasGoal() || getAdjacentNode(currentNode,WEST).hasGoal());
+		return (getAdjacentNode(currentNode,NORTH).hasGold() || getAdjacentNode(currentNode,EAST).hasGold()
+				|| getAdjacentNode(currentNode,SOUTH).hasGold() || getAdjacentNode(currentNode,WEST).hasGold());
 	}
 	
 	/**
@@ -751,8 +778,8 @@ public abstract class Agent {
 	 * @return true if one of the <code>Nodes</code> adjacent to the <code>Agent</code> contains gold, false otherwise
 	 */
 	public boolean nearGold(Node node){
-		return (getAdjacentNode(node,NORTH).hasGoal() || getAdjacentNode(node,EAST).hasGoal()
-				|| getAdjacentNode(node,SOUTH).hasGoal() || getAdjacentNode(node,WEST).hasGoal());
+		return (getAdjacentNode(node,NORTH).hasGold() || getAdjacentNode(node,EAST).hasGold()
+				|| getAdjacentNode(node,SOUTH).hasGold() || getAdjacentNode(node,WEST).hasGold());
 	}
 	
 	/**
@@ -809,8 +836,9 @@ public abstract class Agent {
 	}
 	
 	/**
-	 * NEEDS TO BE IMPLEMENTED.
-	 * @return
+	 * Returns the performance value of the <code>Agent</code> to that point. The score is calculated by taking the
+	 * max points and subtracting both the search cost and movement cost.
+	 * @return the performance value of the <code>Agent</code> to that point
 	 */
 	public int getPerformanceValue(){
 		if(isDead()) return 0; //no points if you die
@@ -851,29 +879,6 @@ public abstract class Agent {
 				break;
 			case WEST:
 				ret = "WEST";
-				break;
-		}
-		return ret;
-	}
-	
-	/**
-	 * Returns the current heading of the <code>Agent</code> as an arrow representing a cardinal direction
-	 * @return the current heading of the <code>Agent</code> as an arrow representing a cardinal direction
-	 */
-	public static String headingToArrowString(){
-		String ret = "failure";
-		switch(HEADING){
-			case NORTH:
-				ret = "^";
-				break;
-			case EAST:
-				ret = ">";
-				break;
-			case SOUTH:
-				ret = "v";
-				break;
-			case WEST:
-				ret = "<";
 				break;
 		}
 		return ret;

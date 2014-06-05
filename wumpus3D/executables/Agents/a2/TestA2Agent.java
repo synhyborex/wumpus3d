@@ -122,7 +122,6 @@ public class TestA2Agent extends Agent
         && (!pitSequence1 && !pitSequence2) && (!getBackToPath || backToPath == 0)){ //no walls or pits nearby
         hitCornerCount = 0; //if we are here, it means move away from corner
         int h = getDirectionOfGold(); //direction of gold
-        log(""+h);
         int hitArrow = -1; //Node has been visited before or no enemy nearby
 
         if(nearMinion() || nearWumpus()){ //near shootable enemy?

@@ -11,7 +11,9 @@ public class TestAgent extends Agent {
 	}
 	
 	public void step(){
-		fireArrow(EAST);
+		fireArrow(HEADING);
+		if(moveEast() == HIT_WALL)
+			log("damn i'm dumb");
 	}
 
 }

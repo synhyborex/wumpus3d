@@ -545,10 +545,10 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
    }
    
    private void drawNode(GLAutoDrawable drawable, Node mapNode){
-	    if(mapNode.hasGoal()){
+	    if(mapNode.hasGold()){
 	    	drawGoal(drawable,mapNode);
 	    }
-		if(mapNode.isWall()){
+		if(mapNode.hasWall()){
 			drawWall(drawable,mapNode);
 		}
 		if(mapNode.hasWumpus()){
@@ -564,13 +564,13 @@ public class MapCanvas extends GLJPanel implements GLEventListener, MouseListene
 				drawMinion(drawable,mapNode);
 			else drawDeadMinion(drawable,mapNode);
 		}
-		if(mapNode.hasFairy() && !(mapNode.hasGoal() || mapNode.hasAgent())){
+		if(mapNode.hasFairy() && !(mapNode.hasGold() || mapNode.hasAgent())){
 			drawFairy(drawable,mapNode);
 		}
 		if(mapNode.hasAgent()){
 			drawAgent(drawable,mapNode);
 		}
-		if(!mapNode.isWall() && !mapNode.hasPit()){
+		if(!mapNode.hasWall() && !mapNode.hasPit()){
 			drawFloor(drawable,mapNode);
 		}
 		//draw beliefs for all nodes

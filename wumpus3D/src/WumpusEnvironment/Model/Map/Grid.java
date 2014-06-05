@@ -104,7 +104,7 @@ public class Grid {
 				
 				//all edges of the map are walls
 				if((i == 0 || i == height-1) || (j == 0 || j == width-1)){
-					grid[i][j].isWall = true;
+					grid[i][j].hasWall = true;
 				}
 			}
 		}
@@ -252,7 +252,7 @@ public class Grid {
 				grid[x][y].hasGoal = b;
 				break;
 			case WALL:
-				grid[x][y].isWall = b;
+				grid[x][y].hasWall = b;
 				break;
 			case WUMPUS:
 				if(grid[x][y].hasWumpus)

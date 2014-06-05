@@ -82,28 +82,28 @@ public class TestDFSAgent extends Agent {
 
 	      //add new nodes
 	      Node add = getNorthOfFairyLocation(); //add north location
-	      if(!add.isEvaluated() && !fringeContains(add) && !add.isWall()){
+	      if(!add.isEvaluated() && !fringeContains(add) && !add.hasWall()){
 	        addToFringeHead(add);
 	        /*path.north = new MyNode();
 	        path.north.parent = path;
 	        path.north.curr = add;*/
 	      }
 	      add = getEastOfFairyLocation(); //add east location
-	      if(!add.isEvaluated() && !fringeContains(add) && !add.isWall()){
+	      if(!add.isEvaluated() && !fringeContains(add) && !add.hasWall()){
 	        addToFringeHead(add);
 	        /*path.east = new MyNode();
 	        path.east.parent = path;
 	        path.east.curr = add;*/
 	      }
 	      add = getSouthOfFairyLocation(); //add south location
-	      if(!add.isEvaluated() && !fringeContains(add) && !add.isWall()){
+	      if(!add.isEvaluated() && !fringeContains(add) && !add.hasWall()){
 	        addToFringeHead(add);
 	        /*path.south = new MyNode();
 	        path.south.parent = path;
 	        path.south.curr = add;*/
 	      }
 	      add = getWestOfFairyLocation(); //add west location
-	      if(!add.isEvaluated() && !fringeContains(add) && !add.isWall()){
+	      if(!add.isEvaluated() && !fringeContains(add) && !add.hasWall()){
 	        addToFringeHead(add);
 	        /*path.west = new MyNode();
 	        path.west.parent = path;

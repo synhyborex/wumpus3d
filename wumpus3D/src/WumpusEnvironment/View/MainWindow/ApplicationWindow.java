@@ -287,7 +287,7 @@ public class ApplicationWindow  extends JFrame implements ActionListener{// impl
 		agent.setStartLocation(grid.getAgentLocation());
 		agent.privateReset();
 		if(fairy){
-			agent.setFairy(new Fairy(grid,grid.getAgentLocation()));
+			agent.setFairy(new Fairy(grid.getAgentLocation()));
 		}
 		agentHandler = new AgentHandler(agent); //create the agent handler thread
 		//print start of log
