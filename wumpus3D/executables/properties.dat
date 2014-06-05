@@ -7,3 +7,4 @@ adj_node 5
 gold_hint 25
 hit_minion 1000
 gold_reward 5000
+life_mult 50

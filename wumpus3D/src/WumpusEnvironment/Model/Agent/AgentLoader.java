@@ -53,7 +53,7 @@ public class AgentLoader {
 	
 	public static void loadCostsFromFile(File file){
 		int start_points = 0, move_cost = 0, turn_cost = 0, curr_node = 0, adj_node = 0, 
-				gold_hint = 0, hit_minion = 0, gold_reward = 0, arrow_cost = 0;
+				gold_hint = 0, hit_minion = 0, gold_reward = 0, arrow_cost = 0, life_mult = 0;
 		try {
 			Scanner sc = new Scanner(file);
 			while(sc.hasNextLine()){
@@ -87,6 +87,9 @@ public class AgentLoader {
 						case "gold_reward":
 							gold_reward = cost.nextInt();
 							break;
+						case "life_mult":
+							life_mult = cost.nextInt();
+							break;
 					}
 				}
 				cost.close();
@@ -99,7 +102,9 @@ public class AgentLoader {
 		}
 		
 		//pass cost values to the Agent
-		Agent.initCosts(new int[]{start_points,move_cost,turn_cost,arrow_cost,curr_node,adj_node,gold_hint,hit_minion,gold_reward});
+		Agent.initCosts(new int[]{start_points,move_cost,turn_cost,arrow_cost,
+									curr_node,adj_node,gold_hint,hit_minion,
+									gold_reward,life_mult});
 	}
 
 }

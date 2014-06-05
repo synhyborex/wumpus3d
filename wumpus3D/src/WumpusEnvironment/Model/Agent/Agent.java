@@ -59,6 +59,7 @@ public abstract class Agent {
 	private static int ARROW_COST = 10;
 	private static int GOLD_REWARD = 5000;
 	private static int START_POINTS = 10000;
+	private static int LIFE_MULT = 50;
 	
 	/**
 	 * The grid on which the <code>Agent</code> is operating
@@ -135,6 +136,7 @@ public abstract class Agent {
 		GOLD_HINT_COST = costs[6];
 		HIT_MINION_COST = costs[7];
 		GOLD_REWARD = costs[8];
+		LIFE_MULT = costs[9];
 	}
 	
 	/**
@@ -843,8 +845,8 @@ public abstract class Agent {
 	public int getPerformanceValue(){
 		if(isDead()) return 0; //no points if you die
 		if(hasFairy())
-			return START_POINTS - movementCost - fairy.getSearchCost();
-		else return START_POINTS - movementCost;
+			return START_POINTS - movementCost - fairy.getSearchCost() + (lifePoints * LIFE_MULT);
+		else return START_POINTS - movementCost + (lifePoints * LIFE_MULT);
 	}
 	
 	/**

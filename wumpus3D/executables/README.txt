@@ -76,7 +76,7 @@ handle that many exceptions regarding initializing the environment.
 - Here is how you can change the map
 X  = wall
 - = blank space
-S = agent start, there can be only one of there
+S = agent start, there can be only one of these
 P = pit
 W = Wumpus
 M = minion
